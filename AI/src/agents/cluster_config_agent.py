@@ -1,7 +1,8 @@
 """Cluster configuration recommendation agent using LangGraph."""
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Dict, List
+from typing import TypedDict, Dict, List, Any
 from shared.utils.logging import get_logger
+from shared.config.settings import settings
 from AI.src.services.azure_openai_service import AzureOpenAIService
 from AI.src.chains.pattern_analysis_chain import PatternAnalysisChain
 from AI.src.chains.cost_optimization_chain import CostOptimizationChain
@@ -9,6 +10,7 @@ from AI.src.chains.explanation_chain import ExplanationChain
 from AI.src.tools.databricks_tools import get_job_metrics, get_resource_utilization, get_cost_analysis
 from AI.src.tools.cost_calculator_tools import calculate_cluster_cost, calculate_cost_savings
 from AI.src.tools.validation_tools import validate_performance, assess_risks, parse_vcpus_from_node_type
+from AI.src.utils.token_usage import TokenUsageTracker
 
 logger = get_logger(__name__)
 
@@ -27,6 +29,7 @@ class RecommendationState(TypedDict):
     risk_assessment: Dict
     recommendation: Dict
     explanation: str
+    token_tracker: Any  # TokenUsageTracker instance
 
 
 class ClusterConfigAgent:
@@ -44,6 +47,9 @@ class ClusterConfigAgent:
         pattern_chain = PatternAnalysisChain()
         cost_chain = CostOptimizationChain()
         explanation_chain = ExplanationChain()
+        
+        # Get model name from settings
+        model_name = settings.azure_openai_deployment_name or "gpt-4o"
         
         # Define graph nodes
         def collect_data(state: RecommendationState) -> RecommendationState:
@@ -74,7 +80,18 @@ class ClusterConfigAgent:
         def analyze_patterns(state: RecommendationState) -> RecommendationState:
             """Analyze workload patterns."""
             logger.info("analyzing_patterns", job_id=state["job_id"])
-            state["pattern_analysis"] = pattern_chain.analyze(state["job_metrics"])
+            result = pattern_chain.analyze(state["job_metrics"])
+            state["pattern_analysis"] = result
+            
+            # Track token usage
+            if "token_tracker" in state and state["token_tracker"]:
+                state["token_tracker"].estimate_chain_usage(
+                    chain_name="pattern_analysis",
+                    model=model_name,
+                    input_text=state["job_metrics"],
+                    output_text=result
+                )
+            
             return state
         
         def optimize_costs(state: RecommendationState) -> RecommendationState:
@@ -92,12 +109,30 @@ class ClusterConfigAgent:
                 "current_spend": state["cost_analysis"].get("monthly_cost", 0)
             }
             
-            state["cost_optimization"] = cost_chain.optimize(
+            result = cost_chain.optimize(
                 current_config,
                 state["job_metrics"],
                 budget_constraints,
                 pattern_analysis=state["pattern_analysis"]
             )
+            state["cost_optimization"] = result
+            
+            # Track token usage
+            if "token_tracker" in state and state["token_tracker"]:
+                # Build input text for cost optimization
+                input_data = {
+                    "current_config": current_config,
+                    "job_metrics": state["job_metrics"],
+                    "budget_constraints": budget_constraints,
+                    "pattern_analysis": state["pattern_analysis"]
+                }
+                state["token_tracker"].estimate_chain_usage(
+                    chain_name="cost_optimization",
+                    model=model_name,
+                    input_text=input_data,
+                    output_text=result
+                )
+            
             return state
         
         def validate_performance_node(state: RecommendationState) -> RecommendationState:
@@ -184,12 +219,30 @@ class ClusterConfigAgent:
             """Generate detailed explanation."""
             logger.info("generating_explanation", job_id=state["job_id"])
             
-            state["explanation"] = explanation_chain.explain(
+            result = explanation_chain.explain(
                 recommendation=state["recommendation"],
                 job_metrics=state["job_metrics"],
                 pattern_analysis=state["pattern_analysis"],
                 risk_assessment=state["risk_assessment"]
             )
+            state["explanation"] = result
+            
+            # Track token usage
+            if "token_tracker" in state and state["token_tracker"]:
+                # Build input text for explanation
+                input_data = {
+                    "recommendation": state["recommendation"],
+                    "job_metrics": state["job_metrics"],
+                    "pattern_analysis": state["pattern_analysis"],
+                    "risk_assessment": state["risk_assessment"]
+                }
+                state["token_tracker"].estimate_chain_usage(
+                    chain_name="explanation",
+                    model=model_name,
+                    input_text=input_data,
+                    output_text=result
+                )
+            
             return state
         
         # Build graph
@@ -234,6 +287,9 @@ class ClusterConfigAgent:
         """
         logger.info("generating_recommendation", job_id=job_id)
         
+        # Initialize token tracker
+        token_tracker = TokenUsageTracker()
+        
         # Initialize state
         initial_state: RecommendationState = {
             "job_id": job_id,
@@ -247,16 +303,21 @@ class ClusterConfigAgent:
             "performance_validation": {},
             "risk_assessment": {},
             "recommendation": {},
-            "explanation": ""
+            "explanation": "",
+            "token_tracker": token_tracker
         }
         
         # Run graph
         final_state = await self.graph.ainvoke(initial_state)
         
+        # Get token usage summary
+        token_usage_summary = token_tracker.get_summary()
+        
         return {
             "recommendation": final_state["recommendation"],
             "explanation": final_state["explanation"],
             "pattern_analysis": final_state["pattern_analysis"],
-            "risk_assessment": final_state["risk_assessment"]
+            "risk_assessment": final_state["risk_assessment"],
+            "token_usage_analysis": token_usage_summary
         }
 

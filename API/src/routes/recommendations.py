@@ -22,6 +22,7 @@ class RecommendationResponse(BaseModel):
     explanation: str
     pattern_analysis: str
     risk_assessment: Dict
+    token_usage_analysis: Optional[Dict] = None
 
 
 @router.post("/generate", response_model=RecommendationResponse)
@@ -48,7 +49,8 @@ async def generate_recommendation(request: GenerateRecommendationRequest):
             recommendation=result["recommendation"],
             explanation=result["explanation"],
             pattern_analysis=result["pattern_analysis"],
-            risk_assessment=result["risk_assessment"]
+            risk_assessment=result["risk_assessment"],
+            token_usage_analysis=result.get("token_usage_analysis")
         )
     except Exception as e:
         logger.error("recommendation_generation_error", error=str(e))
