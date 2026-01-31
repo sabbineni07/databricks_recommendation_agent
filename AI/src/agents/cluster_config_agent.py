@@ -11,6 +11,8 @@ from AI.src.tools.databricks_tools import get_job_metrics, get_resource_utilizat
 from AI.src.tools.cost_calculator_tools import calculate_cluster_cost, calculate_cost_savings
 from AI.src.tools.validation_tools import validate_performance, assess_risks, parse_vcpus_from_node_type
 from AI.src.utils.token_usage import TokenUsageTracker
+from shared.services.cost_logging_service import CostLoggingService
+from uuid import uuid4
 
 logger = get_logger(__name__)
 
@@ -287,8 +289,10 @@ class ClusterConfigAgent:
         """
         logger.info("generating_recommendation", job_id=job_id)
         
-        # Initialize token tracker
+        # Initialize token tracker and cost logging
         token_tracker = TokenUsageTracker()
+        cost_logger = CostLoggingService()
+        request_id = uuid4()
         
         # Initialize state
         initial_state: RecommendationState = {
@@ -313,7 +317,39 @@ class ClusterConfigAgent:
         # Get token usage summary
         token_usage_summary = token_tracker.get_summary()
         
+        # Log token usage to database and App Insights
+        try:
+            model_name = settings.azure_openai_deployment_name or "gpt-4o"
+            for chain_name, chain_data in token_usage_summary["cost_estimate"]["breakdown_by_chain"].items():
+                cost_logger.log_token_usage(
+                    request_id=request_id,
+                    model_name=chain_data["model"],
+                    chain_name=chain_name,
+                    input_tokens=chain_data["input_tokens"],
+                    output_tokens=chain_data["output_tokens"],
+                    total_tokens=chain_data["input_tokens"] + chain_data["output_tokens"],
+                    cost_usd=chain_data["total_cost_usd"],
+                    job_id=job_id
+                )
+        except Exception as e:
+            logger.warning("cost_logging_failed", error=str(e))
+        
+        # Log recommendation to history
+        try:
+            cost_logger.log_recommendation(
+                request_id=request_id,
+                job_id=job_id,
+                recommendation=final_state["recommendation"],
+                explanation=final_state["explanation"],
+                pattern_analysis=final_state["pattern_analysis"],
+                risk_assessment=final_state["risk_assessment"],
+                token_usage_analysis=token_usage_summary
+            )
+        except Exception as e:
+            logger.warning("recommendation_logging_failed", error=str(e))
+        
         return {
+            "request_id": str(request_id),
             "recommendation": final_state["recommendation"],
             "explanation": final_state["explanation"],
             "pattern_analysis": final_state["pattern_analysis"],

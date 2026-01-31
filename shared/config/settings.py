@@ -25,11 +25,23 @@ class Settings(BaseSettings):
     azure_search_api_key: Optional[str] = None
     azure_search_index_name: str = "recommendations-index"
     
-    # Azure SQL Database
+    # Database Configuration
+    # PostgreSQL (preferred for local development)
+    postgres_host: Optional[str] = None
+    postgres_port: int = 5432
+    postgres_user: Optional[str] = None
+    postgres_password: Optional[str] = None
+    postgres_database: Optional[str] = None
+    postgres_ssl_mode: str = "prefer"  # disable, allow, prefer, require, verify-ca, verify-full
+    
+    # Azure SQL Database (legacy/alternative)
     azure_sql_server: Optional[str] = None
     azure_sql_database: Optional[str] = None
     azure_sql_username: Optional[str] = None
     azure_sql_password: Optional[str] = None
+    
+    # Database selection
+    use_postgres: bool = True  # Set to False to use SQL Server
     
     # Azure Blob Storage
     azure_storage_account: Optional[str] = None

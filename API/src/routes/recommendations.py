@@ -18,6 +18,7 @@ class GenerateRecommendationRequest(BaseModel):
 
 class RecommendationResponse(BaseModel):
     """Response model for recommendations."""
+    request_id: Optional[str] = None
     recommendation: Dict
     explanation: str
     pattern_analysis: str
@@ -46,6 +47,7 @@ async def generate_recommendation(request: GenerateRecommendationRequest):
         )
         
         return RecommendationResponse(
+            request_id=result.get("request_id"),
             recommendation=result["recommendation"],
             explanation=result["explanation"],
             pattern_analysis=result["pattern_analysis"],

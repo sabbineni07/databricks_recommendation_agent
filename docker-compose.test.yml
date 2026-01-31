@@ -1,0 +1,47 @@
+version: '3.8'
+
+# Docker Compose for testing
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: databricks-agent-postgres-test
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: databricks_agent_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test-network
+
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: databricks-agent-api-test
+    environment:
+      POSTGRES_HOST: postgres-test
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: databricks_agent_test
+      APP_ENV: test
+      USE_LOCAL_DATA: true
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: pytest
+
+networks:
+  test-network:
+    driver: bridge
+

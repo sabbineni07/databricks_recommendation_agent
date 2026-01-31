@@ -12,9 +12,11 @@ azure-search-documents==11.4.0
 openai==1.54.5
 
 # Database
-pyodbc==5.1.0
+pyodbc==5.1.0  # For SQL Server
 sqlalchemy==2.0.36
-pymssql==2.2.11
+pymssql==2.2.11  # For SQL Server
+psycopg2-binary==2.9.9  # For PostgreSQL
+alembic==1.13.1  # For database migrations
 
 # Databricks
 databricks-sql-connector==3.0.1
