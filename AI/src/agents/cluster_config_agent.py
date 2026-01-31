@@ -8,7 +8,7 @@ from AI.src.chains.cost_optimization_chain import CostOptimizationChain
 from AI.src.chains.explanation_chain import ExplanationChain
 from AI.src.tools.databricks_tools import get_job_metrics, get_resource_utilization, get_cost_analysis
 from AI.src.tools.cost_calculator_tools import calculate_cluster_cost, calculate_cost_savings
-from AI.src.tools.validation_tools import validate_performance, assess_risks
+from AI.src.tools.validation_tools import validate_performance, assess_risks, parse_vcpus_from_node_type
 
 logger = get_logger(__name__)
 
@@ -107,9 +107,9 @@ class ClusterConfigAgent:
             current_peak_cpu = state["resource_utilization"].get("peak_cpu_utilization_pct", 0)
             current_peak_memory = state["resource_utilization"].get("peak_memory_utilization_pct", 0)
             
-            # Extract vCPUs from node type (simplified)
+            # Extract vCPUs from node type
             current_node_type = state["job_metrics"].get("current_node_type", "Standard_E8s_v3")
-            current_vcpus = 8  # Default, should parse from node type
+            current_vcpus = parse_vcpus_from_node_type(current_node_type)
             current_max_workers = state["job_metrics"].get("current_max_workers", 16)
             
             recommended_vcpus = state["cost_optimization"].get("vcpus", 8)

@@ -1,6 +1,39 @@
 """Validation tools for LangChain."""
 from langchain.tools import tool
 from typing import Dict
+import re
+
+
+def parse_vcpus_from_node_type(node_type: str) -> int:
+    """Parse vCPUs from Azure VM node type.
+    
+    Azure VM naming convention: Standard_{Family}{Number}s_v{Version}
+    Examples:
+        Standard_E8s_v3 -> 8 vCPUs
+        Standard_D4s_v3 -> 4 vCPUs
+        Standard_E16s_v3 -> 16 vCPUs
+        Standard_F8s_v2 -> 8 vCPUs
+    
+    Args:
+        node_type: Azure VM node type (e.g., "Standard_E8s_v3")
+    
+    Returns:
+        Number of vCPUs, or 8 as default if parsing fails
+    """
+    if not node_type:
+        return 8  # Default fallback
+    
+    # Pattern: Standard_{Family}{Number}s_v{Version}
+    # Extract the number after the family letter and before 's'
+    match = re.search(r'Standard_[DEF]\d+', node_type)
+    if match:
+        # Extract the number part (e.g., "E8" -> "8")
+        number_match = re.search(r'\d+', match.group())
+        if number_match:
+            return int(number_match.group())
+    
+    # Fallback to default if parsing fails
+    return 8
 
 
 @tool
