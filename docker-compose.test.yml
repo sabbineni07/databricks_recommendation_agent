@@ -1,6 +1,8 @@
 version: '3.8'
 
 # Docker Compose for testing
+# Note: This file does not use .env file to avoid permission issues
+# All environment variables are explicitly set here
 services:
   postgres-test:
     image: postgres:15-alpine
@@ -33,13 +35,23 @@ services:
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: databricks_agent_test
       APP_ENV: test
-      USE_LOCAL_DATA: true
+      USE_LOCAL_DATA: "true"
+      USE_POSTGRES: "true"
+      PYTHONPATH: /app
     depends_on:
       postgres-test:
         condition: service_healthy
     networks:
       - test-network
-    command: pytest
+    volumes:
+      - ./data:/app/data:ro
+      - ./DE:/app/DE:ro
+      - ./AI:/app/AI:ro
+      - ./API:/app/API:ro
+      - ./shared:/app/shared:ro
+      - ./scripts:/app/scripts:ro
+    command: pytest -v --tb=short
+    working_dir: /app
 
 networks:
   test-network:

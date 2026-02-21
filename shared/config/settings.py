@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Azure OpenAI
     azure_openai_endpoint: Optional[str] = None
     azure_openai_api_key: Optional[str] = None
-    azure_openai_api_version: str = "2024-02-15-preview"
+    azure_openai_api_version: str = "2024-05-01-preview"  # Use 2024-05-01-preview for Foundry
     azure_openai_deployment_name: str = "gpt-4o"
     azure_openai_embedding_deployment: str = "text-embedding-3-small"
     

@@ -6,6 +6,15 @@ from shared.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _normalize_azure_endpoint(endpoint: str) -> str:
+    """Strip /api/projects/xxx from Foundry URLs - SDK expects base resource URL."""
+    if "/api/projects/" in endpoint:
+        base = endpoint.split("/api/projects/")[0].rstrip("/")
+        logger.info("normalized_foundry_endpoint", original=endpoint[:60], base=base)
+        return base
+    return endpoint.rstrip("/")
+
+
 class AzureOpenAIService:
     """Service for Azure OpenAI integration."""
     
@@ -21,8 +30,9 @@ class AzureOpenAIService:
             return
         
         try:
+            endpoint = _normalize_azure_endpoint(settings.azure_openai_endpoint)
             self.llm = AzureChatOpenAI(
-                azure_endpoint=settings.azure_openai_endpoint,
+                azure_endpoint=endpoint,
                 api_key=settings.azure_openai_api_key,
                 api_version=settings.azure_openai_api_version,
                 azure_deployment=settings.azure_openai_deployment_name,
@@ -30,7 +40,7 @@ class AzureOpenAIService:
             )
             
             self.embeddings = AzureOpenAIEmbeddings(
-                azure_endpoint=settings.azure_openai_endpoint,
+                azure_endpoint=endpoint,
                 api_key=settings.azure_openai_api_key,
                 api_version=settings.azure_openai_api_version,
                 azure_deployment=settings.azure_openai_embedding_deployment,

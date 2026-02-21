@@ -348,6 +348,32 @@ class ClusterConfigAgent:
         except Exception as e:
             logger.warning("recommendation_logging_failed", error=str(e))
         
+        # Index recommendation for RAG (if Azure AI Search is available)
+        try:
+            from AI.src.services.azure_search_service import AzureSearchService
+            search_service = AzureSearchService()
+            
+            # Build recommendation document for indexing
+            recommendation_doc = {
+                "recommendation_id": str(request_id),
+                "job_id": job_id,
+                "workload_type": final_state["job_metrics"].get("workload_type", 
+                    final_state["job_metrics"].get("current_workload_type", "Unknown")),
+                "rationale": final_state["recommendation"].get("rationale", ""),
+                "detailed_explanation": final_state["explanation"],
+                **final_state["recommendation"]
+            }
+            
+            search_service.index_recommendation(recommendation_doc)
+            
+            # Link recommendation to job metrics (if job metrics were indexed)
+            search_service.link_recommendation_to_job(str(request_id), job_id)
+            
+            logger.info("recommendation_indexed", request_id=str(request_id))
+        except Exception as e:
+            logger.warning("recommendation_indexing_failed", error=str(e))
+            # Continue without indexing - not critical for recommendation generation
+        
         return {
             "request_id": str(request_id),
             "recommendation": final_state["recommendation"],

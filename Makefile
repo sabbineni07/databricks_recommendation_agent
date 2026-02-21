@@ -160,6 +160,29 @@ test-cov: ## Run tests with coverage report
 
 test-docker: ## Run tests in Docker
 	@echo "$(BLUE)Running tests in Docker...$(NC)"
+	@echo "$(YELLOW)Note: This may require network access and Docker daemon$(NC)"
+	@if [ -f .env ]; then \
+		echo "$(YELLOW)Warning: .env file exists but may have permission issues in sandbox$(NC)"; \
+	fi
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) build 2>&1 || (echo "$(YELLOW)Build failed - this may be due to sandbox restrictions$(NC)" && exit 1)
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) up -d postgres-test 2>&1 || (echo "$(YELLOW)Database startup failed$(NC)" && exit 1)
+	@sleep 3
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) run --rm api-test pytest -v --tb=short 2>&1 || (echo "$(YELLOW)Tests failed or container issues$(NC)" && $(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) down && exit 1)
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) down
+
+test-docker-verbose: ## Run tests in Docker with verbose output
+	@echo "$(BLUE)Running tests in Docker (verbose)...$(NC)"
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) run --rm api-test pytest -v --tb=long
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) down
+
+test-docker-cov: ## Run tests in Docker with coverage
+	@echo "$(BLUE)Running tests in Docker with coverage...$(NC)"
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) run --rm api-test pytest --cov=. --cov-report=html --cov-report=term -v
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) down
+
+test-docker-shell: ## Open shell in test container
+	@echo "$(BLUE)Opening shell in test container...$(NC)"
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) run --rm api-test /bin/bash
 	$(DOCKER_COMPOSE) -f $(COMPOSE_TEST_FILE) up --abort-on-container-exit
 
 test-unit: ## Run unit tests only
