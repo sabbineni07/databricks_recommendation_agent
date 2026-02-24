@@ -10,19 +10,19 @@ Presentation content for leadership, structured similar to a sponsorship deck. C
 
 ### PURPOSE
 
-The current Databricks data engineering process involves significant manual effort for cluster sizing, failure diagnosis, pipeline development, and data quality—taking 20–40 hours per source/pipeline and 2–8 hours per incident for RCA. This initiative aims to reduce manual effort, standardize decisions with data-driven AI recommendations, and minimize risk of misconfigurations, ultimately improving efficiency and cost predictability.
+We are proposing a **multi-agent AI platform for the full Data Engineering Lifecycle**—not a one-off solution for a single use case. Today, Databricks data engineering relies on heavy manual effort across design, build, run, and monitor: cluster sizing, failure diagnosis, pipeline development, and data quality (e.g., 20–40 hours per pipeline, 2–8 hours per RCA). This initiative invests in a **reusable product and framework** that spans the lifecycle (Cluster Recommender, Failure RCA, Pipeline Agent, Log Analyzer, Semantic Tagging, Data Quality, and more) so we standardize decisions with data-driven AI, reduce rework, and improve efficiency and cost predictability—with one platform serving many use cases for the long term.
 
 ---
 
 ### WHY NOW
 
-With ongoing pressure on cloud spend and data engineering capacity, manual processes risk delays, inconsistent outcomes, and avoidable cost. Acting now to invest in AI-powered agents will help us reduce cluster spend, cut MTTR for failures, accelerate pipeline delivery, and scale data engineering output without proportional headcount growth—while the technology (Azure AI Foundry, GPT-4o) is mature enough to deliver.
+Pressure on cloud spend and data engineering capacity makes point solutions and manual processes unsustainable. Investing now in a **platform and framework**—rather than solving one use case in isolation—gives us: (1) **strategic leverage:** one build (shared infra, patterns, governance) powers multiple agents across the lifecycle; (2) **faster time-to-value** for each new capability (e.g., pipeline generation, log analysis) because the foundation is already in place; and (3) **scalable impact** without proportional headcount growth. The technology (Azure AI Foundry, GPT-4o) is mature enough to deliver; the differentiator is treating this as a **product for the long term**, not a single-project POC.
 
 ---
 
 ### PROPOSED SOLUTION
 
-Develop an AI-driven agent platform to reduce cluster optimization effort by up to 75%, failure diagnosis time by up to 80%, and pipeline build effort by 30–50%. This will enable measurable cost savings (20–40% on cluster spend), faster delivery, and higher reliability, with an estimated POC investment of ~$90K–$130K and estimated annual savings of ~$100K–$400K¹ (subject to pilot validation).
+Build a **multi-agent Data Engineering Lifecycle platform** as a **product and framework** for long-term use. The platform will support agents across design, build, run, and monitor—starting with Cluster Recommender and Failure RCA in the pilot, then extending to Pipeline, Log Analyzer, Semantic Data Type, Data Quality, and future agents on the same foundation. Outcomes include: cluster optimization effort down by up to 75%, failure diagnosis time by up to 80%, pipeline build effort by 30–50%, plus measurable cost savings (20–40% on cluster spend), faster delivery, and higher reliability. Estimated investment: ~$90K–$130K (Year 1 build); estimated annual savings ~$100K–$400K¹ (subject to pilot validation). The return multiplies as we add agents—each new capability reuses the same platform and infra.
 
 ¹ *Includes cluster spend reduction, FTE effort savings, and reduced rework; see cost/savings slides.*
 
@@ -30,7 +30,9 @@ Develop an AI-driven agent platform to reduce cluster optimization effort by up 
 
 ### BENEFITS
 
-This platform can be extended to support job log analysis, proactive performance tuning, pipeline generation from STTM documentation, semantic data type tagging for governance, automated data quality checks, and a foundation for integrating additional AI agents (e.g., test case automation). One shared infrastructure serves all agents.
+- **One platform, many agents:** A single shared infrastructure (Azure OpenAI, AI Search, Databricks, governance) serves Cluster Recommender, Failure RCA, Pipeline Agent, Log Analyzer, Semantic Tagging, Data Quality, and future agents—no duplicate builds per use case.
+- **Lifecycle coverage:** The framework is designed around the Data Engineering Lifecycle (Design & Plan → Build & Develop → Run & Execute → Monitor & Optimize), so we systematically improve efficiency and quality at every stage.
+- **Long-term product, not a project:** Reusable patterns, prompts, validation, and integrations mean each new agent is faster and cheaper to add—turning this into a durable capability and a clear differentiator for data engineering at scale.
 
 ---
 
@@ -219,6 +221,100 @@ UI (Dashboards, Chat)
 | **Ongoing (Year 2+)** | — | $375 – $700 | $100K – $400K |
 
 **ROI:** Payback in 12–24 months; ongoing positive ROI.
+
+---
+
+## Appendix: How POC Investment and Annual Savings Were Estimated
+
+This section explains how the numbers in the **Proposed Solution** and in **Slide 8** (Pilot vs Year 1 build/infra, annual savings ~$100K–$400K) were calculated, and **cross-checks with Slide 3: Pilot Execution**.
+
+---
+
+### Cross-check: Pilot Execution (Slide 3)
+
+| Pilot Execution (Slide 3) | Value | Appendix alignment |
+|---------------------------|-------|---------------------|
+| **TIMELINE** | 6–8 weeks for Pilot Development | ✓ Pilot *build* is 6–8 weeks; pilot *phase* (build + validate) is 3–4 months (Slide 8). |
+| **BUILD COST** | **$52K – $65K** | ✓ Derived below: 1–2 FTE × 6–8 weeks at blended rate. |
+| **INFRA COST** | **~$80 – $150** (2 pilot agents, low volume) | ✓ Monthly; aligns with Azure OpenAI + AI Search at low volume (Slide 7 / LLM cost). |
+
+---
+
+### 1. Build and Infra Costs: Pilot vs Year 1 Total
+
+**Pilot (Slide 3 & Slide 8):** First 6–8 weeks of development; build cost **$52K–$65K**, infra **$80–$150/month**.
+
+| Component | Low | High | Notes |
+|-----------|-----|------|--------|
+| **Pilot development (6–8 weeks)** | $52K | $65K | 1–2 FTE × 6–8 weeks at blended ~$65–100/hr. Example: 1 × 6 × 160 hrs × $54 ≈ $52K; 2 × 8 × 120 hrs × $34 ≈ $65K. |
+| **Pilot infra (monthly)** | $80 | $150 | 2 pilot agents, low volume: Azure OpenAI + AI Search (Slide 7). |
+
+**Year 1 total (full platform):** **$90K–$130K** = Pilot build + full platform extension (remaining agents, integration, rollout over 3–4 months).
+
+| Component | Low | High | Notes |
+|-----------|-----|------|--------|
+| **Pilot build (6–8 weeks)** | $52K | $65K | As above. |
+| **Full platform extension** | $38K | $65K | Additional 2–3 months effort: more agents, integration, rollout (same FTE assumptions). |
+| **One-time infra/tools (POC period)** | $500 | $2K | Azure OpenAI + AI Search ramp; tools/licenses. |
+| **Total Year 1 build** | **~$90K** | **~$130K** | |
+
+**Summary:** Pilot build **$52K–$65K** and infra **$80–$150/month** match Slide 3. Year 1 total **$90K–$130K** (Proposed Solution / Slide 8) = pilot build + full platform extension + small one-time infra.
+
+---
+
+### 2. Estimated Annual Savings: ~$100K–$400K
+
+**Definition:** Combined benefit over 12 months from (a) lower cluster spend and (b) effort/time savings (and related rework).
+
+#### (a) Cluster spend reduction (20–40%)
+
+| Assumption | Low | High |
+|------------|-----|------|
+| Annual Databricks cluster spend | $100K | $200K |
+| Reduction | 20% | 40% |
+| **Annual savings** | **$20K** | **$80K** |
+
+#### (b) Effort savings (FTE-equivalent)
+
+| Assumption | Low | High |
+|------------|-----|------|
+| Data engineers | 10 | 25 |
+| Hours saved per engineer per month | 20 | 40 |
+| FTE-equivalent freed | 0.5 | 2.5 |
+| Loaded cost per FTE | $150K | $150K |
+| **Annual value** | **$75K** | **$375K** |
+
+#### (c) Other (rework, onboarding)
+
+| Item | Low | High |
+|------|-----|------|
+| Less rework from failures / misconfigs | $15K | $50K |
+| Faster onboarding / less ramp time | $10K | $30K |
+
+#### Total annual savings (rounded)
+
+| Source | Low | High |
+|--------|-----|------|
+| Cluster spend | $20K | $80K |
+| FTE effort | $75K | $375K |
+| Rework + onboarding | $25K | $80K |
+| **Total** | **~$120K** | **~$535K** |
+
+The deck uses **~$100K–$400K** as a conservative range (partial adoption, ramp, not all engineers at high end).
+
+---
+
+### Summary
+
+| Metric | How it's estimated |
+|--------|--------------------|
+| **Pilot (Slide 3): TIMELINE** | 6–8 weeks for pilot development; 3–4 months total pilot phase (build + validate). |
+| **Pilot (Slide 3): BUILD COST $52K–$65K** | 1–2 FTE × 6–8 weeks at blended rate (~$52K–$65K). |
+| **Pilot (Slide 3): INFRA COST $80–$150** | Monthly; 2 pilot agents, low volume (Azure OpenAI + AI Search). |
+| **Year 1 total $90K–$130K** | Pilot build ($52K–$65K) + full platform extension ($38K–$65K) + one-time infra/tools (~$500–$2K). |
+| **Annual savings ~$100K–$400K** | Cluster spend reduction (20–40% of assumed $100K–$200K) + FTE-equivalent time savings (0.5–2.5 FTE × $150K) + rework/onboarding. |
+
+*Adjust for your organization: plug in your actual cluster spend, engineer count, hours saved, loaded FTE cost, pilot duration, and team size/rate.*
 
 ---
 
