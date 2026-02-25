@@ -10,29 +10,29 @@ Presentation content for leadership, structured similar to a sponsorship deck. C
 
 ### PURPOSE
 
-We are proposing a **multi-agent AI platform for the full Data Engineering Lifecycle**—not a one-off solution for a single use case. Today, Databricks data engineering relies on heavy manual effort across design, build, run, and monitor: cluster sizing, failure diagnosis, pipeline development, and data quality (e.g., 20–40 hours per pipeline, 2–8 hours per RCA). This initiative invests in a **reusable product and framework** that spans the lifecycle (Cluster Recommender, Failure RCA, Pipeline Agent, Log Analyzer, Semantic Tagging, Data Quality, and more) so we standardize decisions with data-driven AI, reduce rework, and improve efficiency and cost predictability—with one platform serving many use cases for the long term.
+We are proposing a **multi-agent AI platform for the full Data Engineering Lifecycle**—not a one-off solution for a single use case. Today, Databricks data engineering relies on heavy manual effort: cluster sizing, failure diagnosis, pipeline development, and data quality (e.g., 20–40 hours per pipeline, 2–8 hours per RCA). This initiative will standardize decisions with data-driven AI, reduce rework, and improve efficiency and cost predictability.
 
 ---
 
 ### WHY NOW
 
-Pressure on cloud spend and data engineering capacity makes point solutions and manual processes unsustainable. Investing now in a **platform and framework**—rather than solving one use case in isolation—gives us: (1) **strategic leverage:** one build (shared infra, patterns, governance) powers multiple agents across the lifecycle; (2) **faster time-to-value** for each new capability (e.g., pipeline generation, log analysis) because the foundation is already in place; and (3) **scalable impact** without proportional headcount growth. The technology (Azure AI Foundry, GPT-4o) is mature enough to deliver; the differentiator is treating this as a **product for the long term**, not a single-project POC.
+Pressure on cloud spend and data engineering capacity makes point solutions unsustainable. Investing in a **platform and framework** now gives us: (1) **strategic leverage**—one build (shared infra, patterns, governance) powers multiple agents; (2) **faster time-to-value** for each new capability because the foundation is already in place; and (3) **scalable impact** without proportional headcount growth. The technology (Azure AI Foundry, GPT-4o) is mature; the differentiator is treating this as a durable product, not a single-project POC.
 
 ---
 
 ### PROPOSED SOLUTION
 
-Build a **multi-agent Data Engineering Lifecycle platform** as a **product and framework** for long-term use. The platform will support agents across design, build, run, and monitor—starting with Cluster Recommender and Failure RCA in the pilot, then extending to Pipeline, Log Analyzer, Semantic Data Type, Data Quality, and future agents on the same foundation. Outcomes include: cluster optimization effort down by up to 75%, failure diagnosis time by up to 80%, pipeline build effort by 30–50%, plus measurable cost savings (20–40% on cluster spend), faster delivery, and higher reliability. Estimated investment: ~$90K–$130K (Year 1 build); estimated annual savings **~$200K–$500K**¹ (subject to pilot validation), based on current production Databricks spend (~$735K/year, ~2.9M DBU). The return multiplies as we add agents—each new capability reuses the same platform and infra.
+Build the platform with agents across design, build, run, and monitor—**pilot:** Cluster Recommender and Failure RCA; **then:** Pipeline, Log Analyzer, Semantic Data Type, Data Quality, and future agents. **Outcomes:** cluster optimization effort down by up to 75%, failure diagnosis by up to 80%, pipeline build effort by 30–50%, and cost savings of 20–40% on cluster spend. **Investment:** ~$90K–$130K (Year 1 build). **Estimated annual savings:** **~$200K–$500K**¹ (subject to pilot validation), based on current production (~$735K/year Databricks, ~2.9M DBU).
 
-¹ *Includes cluster spend reduction, FTE effort savings, and reduced rework; see cost/savings slides and Appendix for calculation.*
+¹ *Cluster spend reduction + FTE effort savings + reduced rework; see cost/savings slides and Appendix.*
 
 ---
 
 ### BENEFITS
 
-- **One platform, many agents:** A single shared infrastructure (Azure OpenAI, AI Search, Databricks, governance) serves Cluster Recommender, Failure RCA, Pipeline Agent, Log Analyzer, Semantic Tagging, Data Quality, and future agents—no duplicate builds per use case.
-- **Lifecycle coverage:** The framework is designed around the Data Engineering Lifecycle (Design & Plan → Build & Develop → Run & Execute → Monitor & Optimize), so we systematically improve efficiency and quality at every stage.
-- **Long-term product, not a project:** Reusable patterns, prompts, validation, and integrations mean each new agent is faster and cheaper to add—turning this into a durable capability and a clear differentiator for data engineering at scale.
+- **One platform, many agents:** Shared infrastructure (Azure OpenAI, AI Search, Databricks, governance) serves all agents—no duplicate builds per use case.
+- **Lifecycle coverage:** Design & Plan → Build & Develop → Run & Execute → Monitor & Optimize—efficiency and quality at every stage.
+- **Durable capability:** Reusable patterns and integrations mean each new agent is faster and cheaper to add; a clear differentiator for data engineering at scale.
 
 ---
 
