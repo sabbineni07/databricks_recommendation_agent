@@ -22,9 +22,9 @@ Pressure on cloud spend and data engineering capacity makes point solutions and 
 
 ### PROPOSED SOLUTION
 
-Build a **multi-agent Data Engineering Lifecycle platform** as a **product and framework** for long-term use. The platform will support agents across design, build, run, and monitor—starting with Cluster Recommender and Failure RCA in the pilot, then extending to Pipeline, Log Analyzer, Semantic Data Type, Data Quality, and future agents on the same foundation. Outcomes include: cluster optimization effort down by up to 75%, failure diagnosis time by up to 80%, pipeline build effort by 30–50%, plus measurable cost savings (20–40% on cluster spend), faster delivery, and higher reliability. Estimated investment: ~$90K–$130K (Year 1 build); estimated annual savings ~$100K–$400K¹ (subject to pilot validation). The return multiplies as we add agents—each new capability reuses the same platform and infra.
+Build a **multi-agent Data Engineering Lifecycle platform** as a **product and framework** for long-term use. The platform will support agents across design, build, run, and monitor—starting with Cluster Recommender and Failure RCA in the pilot, then extending to Pipeline, Log Analyzer, Semantic Data Type, Data Quality, and future agents on the same foundation. Outcomes include: cluster optimization effort down by up to 75%, failure diagnosis time by up to 80%, pipeline build effort by 30–50%, plus measurable cost savings (20–40% on cluster spend), faster delivery, and higher reliability. Estimated investment: ~$90K–$130K (Year 1 build); estimated annual savings **~$200K–$500K**¹ (subject to pilot validation), based on current production Databricks spend (~$735K/year, ~2.9M DBU). The return multiplies as we add agents—each new capability reuses the same platform and infra.
 
-¹ *Includes cluster spend reduction, FTE effort savings, and reduced rework; see cost/savings slides.*
+¹ *Includes cluster spend reduction, FTE effort savings, and reduced rework; see cost/savings slides and Appendix for calculation.*
 
 ---
 
@@ -52,7 +52,7 @@ Build a **multi-agent Data Engineering Lifecycle platform** as a **product and f
 
 - **Timeline:** Pilot validates Cluster Recommender + Failure RCA over 3–4 months; full platform rollout by Q3–Q4, with measurable savings within 12 months.
 - **Effort:** Save 20–40 hours per engineer per month on cluster tuning, failure diagnosis, pipeline builds, and data quality—equivalent to 0.5–2.5 FTE freed for higher-value work.
-- **Potential savings:** Estimated **$100K–$400K/year** (cluster spend reduction + effort savings + reduced rework).
+- **Potential savings:** Estimated **$200K–$500K/year** (cluster spend reduction + effort savings + reduced rework), based on current production Databricks cost (~$735K/year).
 - **Note:** Subject to pilot validation and no significant delays from dependencies (e.g., access, integrations, SME availability).
 
 ---
@@ -217,16 +217,16 @@ UI (Dashboards, Chat)
 | Phase | Build cost | Infra (monthly) | Estimated savings (annual) |
 |-------|------------|-----------------|----------------------------|
 | **Pilot (3–4 months)** | $52K – $64K | $80 – $150 | Validate before full rollout |
-| **Year 1 (full platform)** | $90K – $130K total | $375 – $700 | $100K – $400K |
-| **Ongoing (Year 2+)** | — | $375 – $700 | $100K – $400K |
+| **Year 1 (full platform)** | $90K – $130K total | $375 – $700 | **$200K – $500K** |
+| **Ongoing (Year 2+)** | — | $375 – $700 | **$200K – $500K** |
 
-**ROI:** Payback in 12–24 months; ongoing positive ROI.
+**ROI:** Payback in 12–24 months; ongoing positive ROI. *Savings based on current production: ~$735K Databricks cost, ~2.9M DBU (2025).*
 
 ---
 
 ## Appendix: How POC Investment and Annual Savings Were Estimated
 
-This section explains how the numbers in the **Proposed Solution** and in **Slide 8** (Pilot vs Year 1 build/infra, annual savings ~$100K–$400K) were calculated, and **cross-checks with Slide 3: Pilot Execution**.
+This section explains how the numbers in the **Proposed Solution** and in **Slide 8** (Pilot vs Year 1 build/infra, annual savings ~$200K–$500K) were calculated, and **cross-checks with Slide 3: Pilot Execution**. **Example uses actual production data: Year 2025 (Jan–Dec) Databricks total cost $735K, total DBU consumption 2,914,243.**
 
 ---
 
@@ -262,17 +262,20 @@ This section explains how the numbers in the **Proposed Solution** and in **Slid
 
 ---
 
-### 2. Estimated Annual Savings: ~$100K–$400K
+### 2. Estimated Annual Savings: ~$200K–$500K (example using production data)
 
 **Definition:** Combined benefit over 12 months from (a) lower cluster spend and (b) effort/time savings (and related rework).
+
+**Production baseline (example):** Year 2025 (Jan–Dec) — Total Databricks cost **$735K**, total DBU consumption **2,914,243**.
 
 #### (a) Cluster spend reduction (20–40%)
 
 | Assumption | Low | High |
 |------------|-----|------|
-| Annual Databricks cluster spend | $100K | $200K |
+| Annual Databricks cluster spend | **$735K** (actual 2025) | **$735K** (actual 2025) |
+| DBU (annual) | — | 2,914,243 |
 | Reduction | 20% | 40% |
-| **Annual savings** | **$20K** | **$80K** |
+| **Annual savings** | **$147K** | **$294K** |
 
 #### (b) Effort savings (FTE-equivalent)
 
@@ -295,12 +298,12 @@ This section explains how the numbers in the **Proposed Solution** and in **Slid
 
 | Source | Low | High |
 |--------|-----|------|
-| Cluster spend | $20K | $80K |
+| Cluster spend (20–40% of $735K) | $147K | $294K |
 | FTE effort | $75K | $375K |
 | Rework + onboarding | $25K | $80K |
-| **Total** | **~$120K** | **~$535K** |
+| **Total** | **~$247K** | **~$749K** |
 
-The deck uses **~$100K–$400K** as a conservative range (partial adoption, ramp, not all engineers at high end).
+The deck uses **~$200K–$500K** as a conservative range (partial adoption, ramp, not all jobs/engineers at high end).
 
 ---
 
@@ -312,9 +315,9 @@ The deck uses **~$100K–$400K** as a conservative range (partial adoption, ramp
 | **Pilot (Slide 3): BUILD COST $52K–$64K** | 2 FTE × 6.5–8 weeks × 40 hrs/week × $100/hr. |
 | **Pilot (Slide 3): INFRA COST $80–$150** | Monthly; 2 pilot agents, low volume (Azure OpenAI + AI Search). |
 | **Year 1 total $90K–$130K** | Pilot build ($52K–$64K) + full platform extension ($38K–$66K) + one-time infra/tools (~$500–$2K). |
-| **Annual savings ~$100K–$400K** | Cluster spend reduction (20–40% of assumed $100K–$200K) + FTE-equivalent time savings (0.5–2.5 FTE × $150K) + rework/onboarding. |
+| **Annual savings ~$200K–$500K** | Cluster spend reduction (20–40% of **$735K** actual 2025) + FTE-equivalent time savings (0.5–2.5 FTE × $150K) + rework/onboarding. Example total: ~$247K–$749K; deck range is conservative. |
 
-*Adjust for your organization: plug in your actual cluster spend, engineer count, hours saved, loaded FTE cost, pilot duration, and team size/rate.*
+*Example uses production 2025: $735K Databricks cost, 2,914,243 DBU. Adjust for your organization: plug in your actual cluster spend, engineer count, hours saved, loaded FTE cost, pilot duration, and team size/rate.*
 
 ---
 
