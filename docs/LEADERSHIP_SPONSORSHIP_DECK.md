@@ -79,7 +79,7 @@ Build a **multi-agent Data Engineering Lifecycle platform** as a **product and f
 | |                                                                                |
 |---|--------------------------------------------------------------------------------|
 | **TIMELINE** | 6-8 weeks for Pilot Development (enhance Cluster Recommender, add Failure RCA) |
-| **BUILD COST** | **$52K – $65K**                                                                |
+| **BUILD COST** | **$52K – $64K**                                                                |
 | **INFRA COST** | **~$80 – $150** (2 pilot agents, low volume)                                   |
 
 **Key Next Steps**
@@ -216,7 +216,7 @@ UI (Dashboards, Chat)
 
 | Phase | Build cost | Infra (monthly) | Estimated savings (annual) |
 |-------|------------|-----------------|----------------------------|
-| **Pilot (3–4 months)** | $52K – $65K | $80 – $150 | Validate before full rollout |
+| **Pilot (3–4 months)** | $52K – $64K | $80 – $150 | Validate before full rollout |
 | **Year 1 (full platform)** | $90K – $130K total | $375 – $700 | $100K – $400K |
 | **Ongoing (Year 2+)** | — | $375 – $700 | $100K – $400K |
 
@@ -235,30 +235,30 @@ This section explains how the numbers in the **Proposed Solution** and in **Slid
 | Pilot Execution (Slide 3) | Value | Appendix alignment |
 |---------------------------|-------|---------------------|
 | **TIMELINE** | 6–8 weeks for Pilot Development | ✓ Pilot *build* is 6–8 weeks; pilot *phase* (build + validate) is 3–4 months (Slide 8). |
-| **BUILD COST** | **$52K – $65K** | ✓ Derived below: 1–2 FTE × 6–8 weeks at blended rate. |
+| **BUILD COST** | **$52K – $64K** | ✓ Derived below: 2 FTE × 6.5–8 weeks × 40 hrs/week × $100/hr. |
 | **INFRA COST** | **~$80 – $150** (2 pilot agents, low volume) | ✓ Monthly; aligns with Azure OpenAI + AI Search at low volume (Slide 7 / LLM cost). |
 
 ---
 
 ### 1. Build and Infra Costs: Pilot vs Year 1 Total
 
-**Pilot (Slide 3 & Slide 8):** First 6–8 weeks of development; build cost **$52K–$65K**, infra **$80–$150/month**.
+**Pilot (Slide 3 & Slide 8):** First 6.5–8 weeks of development; build cost **$52K–$64K**, infra **$80–$150/month**. Blended rate **$100/hr** (40 hrs/week per FTE).
 
 | Component | Low | High | Notes |
 |-----------|-----|------|--------|
-| **Pilot development (6–8 weeks)** | $52K | $65K | 1–2 FTE × 6–8 weeks at blended ~$65–100/hr. Example: 1 × 6 × 160 hrs × $54 ≈ $52K; 2 × 8 × 120 hrs × $34 ≈ $65K. |
+| **Pilot development (6.5–8 weeks)** | $52K | $64K | 2 FTE × 6.5–8 weeks × 40 hrs/week × $100/hr. Example: 2 FTE × 6.5 weeks × 40 × $100 = $52K; 2 FTE × 8 weeks × 40 × $100 = $64K. |
 | **Pilot infra (monthly)** | $80 | $150 | 2 pilot agents, low volume: Azure OpenAI + AI Search (Slide 7). |
 
-**Year 1 total (full platform):** **$90K–$130K** = Pilot build + full platform extension (remaining agents, integration, rollout over 3–4 months).
+**Year 1 total (full platform):** **$90K–$130K** = Pilot build + full platform extension (remaining agents, integration, rollout over 2–3 months). Same $100/hr rate.
 
 | Component | Low | High | Notes |
 |-----------|-----|------|--------|
-| **Pilot build (6–8 weeks)** | $52K | $65K | As above. |
-| **Full platform extension** | $38K | $65K | Additional 2–3 months effort: more agents, integration, rollout (same FTE assumptions). |
+| **Pilot build (6.5–8 weeks)** | $52K | $64K | As above. |
+| **Full platform extension** | $38K | $66K | Additional 2–3 months: more agents, integration, rollout (2 FTE × 40 hrs/week × $100/hr). |
 | **One-time infra/tools (POC period)** | $500 | $2K | Azure OpenAI + AI Search ramp; tools/licenses. |
 | **Total Year 1 build** | **~$90K** | **~$130K** | |
 
-**Summary:** Pilot build **$52K–$65K** and infra **$80–$150/month** match Slide 3. Year 1 total **$90K–$130K** (Proposed Solution / Slide 8) = pilot build + full platform extension + small one-time infra.
+**Summary:** Pilot build **$52K–$64K** and infra **$80–$150/month** match Slide 3. Year 1 total **$90K–$130K** (Proposed Solution / Slide 8) = pilot build + full platform extension + small one-time infra.
 
 ---
 
@@ -309,9 +309,9 @@ The deck uses **~$100K–$400K** as a conservative range (partial adoption, ramp
 | Metric | How it's estimated |
 |--------|--------------------|
 | **Pilot (Slide 3): TIMELINE** | 6–8 weeks for pilot development; 3–4 months total pilot phase (build + validate). |
-| **Pilot (Slide 3): BUILD COST $52K–$65K** | 1–2 FTE × 6–8 weeks at blended rate (~$52K–$65K). |
+| **Pilot (Slide 3): BUILD COST $52K–$64K** | 2 FTE × 6.5–8 weeks × 40 hrs/week × $100/hr. |
 | **Pilot (Slide 3): INFRA COST $80–$150** | Monthly; 2 pilot agents, low volume (Azure OpenAI + AI Search). |
-| **Year 1 total $90K–$130K** | Pilot build ($52K–$65K) + full platform extension ($38K–$65K) + one-time infra/tools (~$500–$2K). |
+| **Year 1 total $90K–$130K** | Pilot build ($52K–$64K) + full platform extension ($38K–$66K) + one-time infra/tools (~$500–$2K). |
 | **Annual savings ~$100K–$400K** | Cluster spend reduction (20–40% of assumed $100K–$200K) + FTE-equivalent time savings (0.5–2.5 FTE × $150K) + rework/onboarding. |
 
 *Adjust for your organization: plug in your actual cluster spend, engineer count, hours saved, loaded FTE cost, pilot duration, and team size/rate.*
