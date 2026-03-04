@@ -5,6 +5,9 @@ from shared.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+# Scope for Azure OpenAI / Cognitive Services when using Azure AD
+_AZURE_OPENAI_SCOPE = "https://cognitiveservices.azure.com/.default"
+
 
 def _normalize_azure_endpoint(endpoint: str) -> str:
     """Strip /api/projects/xxx from Foundry URLs - SDK expects base resource URL."""
@@ -15,13 +18,24 @@ def _normalize_azure_endpoint(endpoint: str) -> str:
     return endpoint.rstrip("/")
 
 
+def _build_azure_ad_token_provider():
+    """Build a callable that returns an Azure AD token (for Managed Identity / az login)."""
+    from azure.identity import DefaultAzureCredential
+    credential = DefaultAzureCredential()
+    def token_provider():
+        token = credential.get_token(_AZURE_OPENAI_SCOPE)
+        return token.token
+    return token_provider
+
+
 class AzureOpenAIService:
-    """Service for Azure OpenAI integration."""
+    """Service for Azure OpenAI integration.
+    Supports (1) API key via AZURE_OPENAI_API_KEY or (2) Azure AD via Managed Identity / az login.
+    """
     
     def __init__(self):
         """Initialize Azure OpenAI service."""
-        # Check if we have credentials, otherwise use mock service
-        if not settings.azure_openai_endpoint or not settings.azure_openai_api_key:
+        if not settings.azure_openai_endpoint:
             logger.warning("azure_openai_credentials_missing_using_mock")
             from AI.src.services.mock_llm_service import MockLLMService
             mock_service = MockLLMService()
@@ -29,24 +43,41 @@ class AzureOpenAIService:
             self.embeddings = mock_service.get_embeddings()
             return
         
+        use_api_key = settings.azure_openai_api_key and settings.azure_openai_api_key.strip()
+        endpoint = _normalize_azure_endpoint(settings.azure_openai_endpoint)
+        
         try:
-            endpoint = _normalize_azure_endpoint(settings.azure_openai_endpoint)
-            self.llm = AzureChatOpenAI(
-                azure_endpoint=endpoint,
-                api_key=settings.azure_openai_api_key,
-                api_version=settings.azure_openai_api_version,
-                azure_deployment=settings.azure_openai_deployment_name,
-                temperature=0.7,
-            )
-            
-            self.embeddings = AzureOpenAIEmbeddings(
-                azure_endpoint=endpoint,
-                api_key=settings.azure_openai_api_key,
-                api_version=settings.azure_openai_api_version,
-                azure_deployment=settings.azure_openai_embedding_deployment,
-            )
-            
-            logger.info("azure_openai_service_initialized")
+            if use_api_key:
+                self.llm = AzureChatOpenAI(
+                    azure_endpoint=endpoint,
+                    api_key=settings.azure_openai_api_key,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_deployment_name,
+                    temperature=0.7,
+                )
+                self.embeddings = AzureOpenAIEmbeddings(
+                    azure_endpoint=endpoint,
+                    api_key=settings.azure_openai_api_key,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_embedding_deployment,
+                )
+                logger.info("azure_openai_service_initialized", auth="api_key")
+            else:
+                token_provider = _build_azure_ad_token_provider()
+                self.llm = AzureChatOpenAI(
+                    azure_endpoint=endpoint,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_deployment_name,
+                    azure_ad_token_provider=token_provider,
+                    temperature=0.7,
+                )
+                self.embeddings = AzureOpenAIEmbeddings(
+                    azure_endpoint=endpoint,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_embedding_deployment,
+                    azure_ad_token_provider=token_provider,
+                )
+                logger.info("azure_openai_service_initialized", auth="azure_ad")
         except Exception as e:
             logger.warning(f"azure_openai_init_failed_using_mock: {e}")
             from AI.src.services.mock_llm_service import MockLLMService
