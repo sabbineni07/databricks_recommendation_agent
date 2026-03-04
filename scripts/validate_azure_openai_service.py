@@ -109,8 +109,12 @@ def main():
     print("\n2. Embeddings...")
     try:
         out = _request(emb_url, {"input": "Databricks cluster"}, auth)
-        dim = len(out["data"][0]["embedding"])
+        vec = out["data"][0]["embedding"]
+        dim = len(vec)
         print(f"   Dimension: {dim}")
+        # Print a truncated view of the vector so output stays readable
+        preview_len = min(10, dim)
+        print(f"   Vector (first {preview_len} values): {vec[:preview_len]}")
         print("   OK")
     except urllib.error.HTTPError as e:
         print(f"   FAILED: {e.code} {e.reason}")
