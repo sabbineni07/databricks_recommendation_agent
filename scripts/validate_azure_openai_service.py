@@ -1,82 +1,126 @@
 #!/usr/bin/env python3
 """
-Validate Azure OpenAI service directly (no API).
+Minimal validation for Azure OpenAI endpoint (no LangChain).
+
+Uses only: stdlib, python-dotenv, azure-identity.
+- If AZURE_OPENAI_API_KEY is set in .env: uses API key.
+- If not: uses Azure AD token (az login or Managed Identity).
 
 Run from project root:
+  pip install python-dotenv azure-identity
   python scripts/validate_azure_openai_service.py
-
-Or with venv:
-  source venv/bin/activate && python scripts/validate_azure_openai_service.py
-
-Uses .env (or env vars): AZURE_OPENAI_ENDPOINT, deployment names;
-  optionally AZURE_OPENAI_API_KEY. If no key, uses Azure AD (az login / Managed Identity).
 """
+import json
 import os
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-# Project root and .env
+# Load .env from project root
 project_root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(project_root))
-
-# Load .env before importing settings
 env_file = project_root / ".env"
 if env_file.exists():
-    from dotenv import load_dotenv
-    load_dotenv(env_file)
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_file)
+    except ImportError:
+        pass  # optional
 
-from shared.config.settings import settings
-from AI.src.services.azure_openai_service import AzureOpenAIService
-from langchain_core.messages import HumanMessage
+# Config from env (no pydantic)
+ENDPOINT = (os.environ.get("AZURE_OPENAI_ENDPOINT") or "").strip()
+API_KEY = (os.environ.get("AZURE_OPENAI_API_KEY") or "").strip()
+API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-05-01-preview"
+CHAT_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME") or "gpt-4o"
+EMBEDDING_DEPLOYMENT = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") or "text-embedding-3-small"
+
+
+def _normalize_endpoint(endpoint: str) -> str:
+    if "/api/projects/" in endpoint:
+        endpoint = endpoint.split("/api/projects/")[0].rstrip("/")
+    return endpoint.rstrip("/")
+
+
+def _get_auth_headers():
+    """Return dict of auth headers: either api-key or Authorization Bearer."""
+    if API_KEY:
+        return {"api-key": API_KEY}
+    from azure.identity import DefaultAzureCredential
+    credential = DefaultAzureCredential()
+    token = credential.get_token("https://cognitiveservices.azure.com/.default")
+    return {"Authorization": f"Bearer {token.token}"}
+
+
+def _request(url: str, body: dict, headers: dict) -> dict:
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(body).encode("utf-8"),
+        headers={**headers, "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.loads(resp.read().decode())
 
 
 def main():
     print("=" * 60)
-    print("Validate Azure OpenAI Service (end-to-end)")
+    print("Validate Azure OpenAI endpoint (direct REST, no LangChain)")
     print("=" * 60)
 
-    # Config summary (no secrets)
-    has_endpoint = bool(settings.azure_openai_endpoint and settings.azure_openai_endpoint.strip())
-    has_key = bool(settings.azure_openai_api_key and settings.azure_openai_api_key.strip())
-    print(f"\nConfig: endpoint={'set' if has_endpoint else 'NOT SET'}, api_key={'set' if has_key else 'NOT SET (Azure AD)'}")
-
-    if not has_endpoint:
-        print("Set AZURE_OPENAI_ENDPOINT in .env (and deployment names). Exiting.")
+    if not ENDPOINT:
+        print("Set AZURE_OPENAI_ENDPOINT in .env. Exiting.")
         sys.exit(1)
 
-    print("\n1. Initializing AzureOpenAIService...")
-    service = AzureOpenAIService()
-    llm = service.get_llm()
-    embeddings = service.get_embeddings()
+    base = _normalize_endpoint(ENDPOINT)
+    auth = _get_auth_headers()
+    auth_type = "api_key" if API_KEY else "Azure AD (token)"
+    print(f"\nEndpoint: {base}")
+    print(f"Auth: {auth_type}")
 
-    # --- LLM ---
-    print("\n2. LLM invoke (single turn)...")
+    # 1) Chat completions
+    chat_url = f"{base}/openai/deployments/{CHAT_DEPLOYMENT}/chat/completions?api-version={API_VERSION}"
+    print("\n1. Chat completions...")
     try:
-        msg = [HumanMessage(content="Reply in one short sentence: what is 2+2?")]
-        out = llm.invoke(msg)
-        content = out.content if hasattr(out, "content") else str(out)
-        print(f"   Response: {content[:500]}")
-        print("   LLM: OK")
+        out = _request(
+            chat_url,
+            {"messages": [{"role": "user", "content": "Reply in one short sentence: what is 2+2?"}], "max_tokens": 80},
+            auth,
+        )
+        text = out["choices"][0]["message"]["content"]
+        print(f"   Response: {text.strip()}")
+        print("   OK")
+    except urllib.error.HTTPError as e:
+        print(f"   FAILED: {e.code} {e.reason}")
+        if e.fp:
+            try:
+                body = e.fp.read().decode()
+                print(f"   Body: {body[:500]}")
+            except Exception:
+                pass
+        sys.exit(1)
     except Exception as e:
-        print(f"   LLM: FAILED - {e}")
+        print(f"   FAILED: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
 
-    # --- Embeddings ---
-    print("\n3. Embeddings (embed_query)...")
+    # 2) Embeddings (optional quick check)
+    emb_url = f"{base}/openai/deployments/{EMBEDDING_DEPLOYMENT}/embeddings?api-version={API_VERSION}"
+    print("\n2. Embeddings...")
     try:
-        vec = embeddings.embed_query("Databricks cluster configuration")
-        print(f"   Dimension: {len(vec)}, sample[:5] = {vec[:5]}")
-        print("   Embeddings: OK")
+        out = _request(emb_url, {"input": "Databricks cluster"}, auth)
+        dim = len(out["data"][0]["embedding"])
+        print(f"   Dimension: {dim}")
+        print("   OK")
+    except urllib.error.HTTPError as e:
+        print(f"   FAILED: {e.code} {e.reason}")
+        sys.exit(1)
     except Exception as e:
-        print(f"   Embeddings: FAILED - {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"   FAILED: {e}")
         sys.exit(1)
 
     print("\n" + "=" * 60)
-    print("All checks passed. Azure OpenAI service is working.")
+    print("All checks passed. Endpoint is reachable with current auth.")
     print("=" * 60)
 
 
