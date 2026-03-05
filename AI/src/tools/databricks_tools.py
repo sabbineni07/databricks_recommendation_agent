@@ -48,7 +48,15 @@ def get_job_cluster_metrics(
             from DE.src.processors.metrics_processor import MetricsProcessor
             processor = MetricsProcessor()
             aggregated = processor.aggregate_by_job(metrics)
-            return aggregated.get(job_id, {})
+            out = aggregated.get(job_id, aggregated.get(str(job_id), {}))
+            logger.info(
+                "get_job_cluster_metrics_result",
+                raw_count=len(metrics),
+                aggregated_job_ids=list(aggregated.keys()),
+                returned_keys=list(out.keys())[:20] if out else [],
+            )
+            return out
+        logger.warning("get_job_cluster_metrics_empty", job_id=job_id, start_date=start_date, end_date=end_date)
         return {}
     except Exception as e:
         logger.error("get_job_cluster_metrics_error", error=str(e))

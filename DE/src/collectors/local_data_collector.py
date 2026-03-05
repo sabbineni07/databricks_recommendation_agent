@@ -58,25 +58,35 @@ class LocalDataCollector:
         try:
             # Read CSV file
             df = pd.read_csv(self.csv_path)
-            
+            logger.info("local_csv_loaded", rows=len(df), path=str(self.csv_path))
+
+            # Normalize job_id and workspace_id to string for filtering (CSV may have numeric types)
+            if "job_id" in df.columns:
+                df["job_id"] = df["job_id"].astype(str)
+            if "workspace_id" in df.columns:
+                df["workspace_id"] = df["workspace_id"].astype(str)
+
             # Convert date column to datetime for filtering
             df['date'] = pd.to_datetime(df['date'])
             start_dt = pd.to_datetime(start_date)
             end_dt = pd.to_datetime(end_date)
-            
-            # Filter by date range
+
+            # Filter by date range (end_date is exclusive)
             df_filtered = df[
-                (df['date'] >= start_dt) & 
+                (df['date'] >= start_dt) &
                 (df['date'] < end_dt)
             ]
-            
+            logger.info("local_csv_after_date_filter", rows=len(df_filtered), start=start_date, end=end_date)
+
             # Filter by job_ids if provided
             if job_ids:
-                df_filtered = df_filtered[df_filtered['job_id'].isin(job_ids)]
+                job_ids_str = [str(j) for j in job_ids]
+                df_filtered = df_filtered[df_filtered['job_id'].isin(job_ids_str)]
+                logger.info("local_csv_after_job_id_filter", rows=len(df_filtered), job_ids=job_ids_str)
             
             # Filter by workspace_id if provided
             if workspace_id:
-                df_filtered = df_filtered[df_filtered['workspace_id'] == workspace_id]
+                df_filtered = df_filtered[df_filtered['workspace_id'] == str(workspace_id)]
             
             # Convert date back to string format
             df_filtered = df_filtered.copy()
@@ -100,8 +110,20 @@ class LocalDataCollector:
                     metrics.append(metric)
                 except Exception as e:
                     logger.warning("failed_to_parse_metric", error=str(e), row=row.to_dict())
-            
-            logger.info("collected_job_cluster_metrics_from_csv", count=len(metrics))
+
+            # Log first record summary for validation
+            if metrics:
+                first = metrics[0]
+                rec = first.model_dump() if hasattr(first, "model_dump") else first.dict()
+                logger.info(
+                    "collected_job_cluster_metrics_from_csv",
+                    count=len(metrics),
+                    first_record_job_id=rec.get("job_id"),
+                    first_record_date=rec.get("date"),
+                    first_record_keys=list(rec.keys())[:15],
+                )
+            else:
+                logger.warning("collected_job_cluster_metrics_from_csv", count=0, message="no_records_after_filter")
             return metrics
                     
         except Exception as e:

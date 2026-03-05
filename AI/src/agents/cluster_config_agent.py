@@ -72,6 +72,18 @@ class ClusterConfigAgent:
                 "avg_nodes_consumed": jcm.get("avg_nodes_consumed", jcm.get("p95_nodes_consumed", 4)),
             }
 
+            # Log collected records for validation (keys and sample values)
+            if jcm:
+                logger.info(
+                    "collect_data_job_cluster_metrics",
+                    job_id=state["job_id"],
+                    keys=list(jcm.keys())[:25],
+                    sample_peak_cpu=jcm.get("peak_cpu_utilization_pct"),
+                    sample_avg_nodes=jcm.get("avg_nodes_consumed"),
+                )
+            else:
+                logger.warning("collect_data_job_cluster_metrics_empty", job_id=state["job_id"])
+
             state["cost_analysis"] = get_cost_analysis.invoke({
                 "job_id": state["job_id"],
                 "start_date": state["start_date"],
