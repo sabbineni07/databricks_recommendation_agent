@@ -161,16 +161,6 @@ class DatabricksCollector:
             logger.error("databricks_collection_error", error=str(e), table=table)
             raise
 
-    def collect_resource_utilization(
-        self,
-        start_date: str,
-        end_date: str,
-        job_ids: Optional[List[str]] = None
-    ) -> List[Dict]:
-        """Collect resource utilization metrics."""
-        logger.info("collecting_resource_utilization", start_date=start_date, end_date=end_date)
-        return []
-
     def collect_cost_data(
         self,
         start_date: str,

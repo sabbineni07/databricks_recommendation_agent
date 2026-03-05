@@ -56,35 +56,6 @@ def get_job_cluster_metrics(
 
 
 @tool
-def get_resource_utilization(
-    job_id: str,
-    start_date: str,
-    end_date: str
-) -> Dict:
-    """Get resource utilization metrics for a job.
-    
-    Args:
-        job_id: The Databricks job ID
-        start_date: Start date in YYYY-MM-DD format
-        end_date: End date in YYYY-MM-DD format
-    
-    Returns:
-        Dictionary containing resource utilization metrics
-    """
-    try:
-        collector = _get_collector()
-        utilization = collector.collect_resource_utilization(
-            start_date=start_date,
-            end_date=end_date,
-            job_ids=[job_id]
-        )
-        return utilization[0] if utilization else {}
-    except Exception as e:
-        logger.error("get_resource_utilization_error", error=str(e))
-        return {}
-
-
-@tool
 def get_cost_analysis(
     job_id: str,
     start_date: str,

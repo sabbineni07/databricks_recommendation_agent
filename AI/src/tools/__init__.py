@@ -1,7 +1,6 @@
 """AI agent tools."""
 from .databricks_tools import (
     get_job_cluster_metrics,
-    get_resource_utilization,
     get_cost_analysis
 )
 from .cost_calculator_tools import (
@@ -15,7 +14,6 @@ from .validation_tools import (
 
 __all__ = [
     "get_job_cluster_metrics",
-    "get_resource_utilization",
     "get_cost_analysis",
     "calculate_cluster_cost",
     "calculate_cost_savings",

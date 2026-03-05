@@ -7,7 +7,7 @@ from AI.src.services.azure_openai_service import AzureOpenAIService
 from AI.src.chains.pattern_analysis_chain import PatternAnalysisChain
 from AI.src.chains.cost_optimization_chain import CostOptimizationChain
 from AI.src.chains.explanation_chain import ExplanationChain
-from AI.src.tools.databricks_tools import get_job_cluster_metrics, get_resource_utilization, get_cost_analysis
+from AI.src.tools.databricks_tools import get_job_cluster_metrics, get_cost_analysis
 from AI.src.tools.cost_calculator_tools import calculate_cluster_cost, calculate_cost_savings
 from AI.src.tools.validation_tools import validate_performance, assess_risks, parse_vcpus_from_node_type
 from AI.src.utils.token_usage import TokenUsageTracker
@@ -64,13 +64,14 @@ class ClusterConfigAgent:
                 "start_date": state["start_date"],
                 "end_date": state["end_date"]
             })
-            
-            state["resource_utilization"] = get_resource_utilization.invoke({
-                "job_id": state["job_id"],
-                "start_date": state["start_date"],
-                "end_date": state["end_date"]
-            })
-            
+            # Derive resource_utilization from job_cluster_metrics (same data, avoid extra collector call)
+            jcm = state["job_cluster_metrics"]
+            state["resource_utilization"] = {
+                "peak_cpu_utilization_pct": jcm.get("peak_cpu_utilization_pct", jcm.get("peak_cpu_utilization", 0)),
+                "peak_memory_utilization_pct": jcm.get("peak_memory_utilization_pct", jcm.get("peak_memory_utilization", 0)),
+                "avg_nodes_consumed": jcm.get("avg_nodes_consumed", jcm.get("p95_nodes_consumed", 4)),
+            }
+
             state["cost_analysis"] = get_cost_analysis.invoke({
                 "job_id": state["job_id"],
                 "start_date": state["start_date"],
