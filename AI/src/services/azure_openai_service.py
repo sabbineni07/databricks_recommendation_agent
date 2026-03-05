@@ -28,9 +28,16 @@ def _build_azure_ad_token_provider():
     return token_provider
 
 
+def _build_env_token_provider(token: str):
+    """Build a callable that returns the given token (e.g. from AZURE_OPENAI_ACCESS_TOKEN). No refresh."""
+    def token_provider():
+        return token
+    return token_provider
+
+
 class AzureOpenAIService:
     """Service for Azure OpenAI integration.
-    Supports (1) API key via AZURE_OPENAI_API_KEY or (2) Azure AD via Managed Identity / az login.
+    Auth order: (1) API key, (2) token from env AZURE_OPENAI_ACCESS_TOKEN, (3) DefaultAzureCredential.
     """
     
     def __init__(self):
@@ -44,6 +51,7 @@ class AzureOpenAIService:
             return
         
         use_api_key = settings.azure_openai_api_key and settings.azure_openai_api_key.strip()
+        use_token_env = settings.azure_openai_access_token and settings.azure_openai_access_token.strip()
         endpoint = _normalize_azure_endpoint(settings.azure_openai_endpoint)
         
         try:
@@ -62,6 +70,22 @@ class AzureOpenAIService:
                     azure_deployment=settings.azure_openai_embedding_deployment,
                 )
                 logger.info("azure_openai_service_initialized", auth="api_key")
+            elif use_token_env:
+                token_provider = _build_env_token_provider(settings.azure_openai_access_token)
+                self.llm = AzureChatOpenAI(
+                    azure_endpoint=endpoint,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_deployment_name,
+                    azure_ad_token_provider=token_provider,
+                    temperature=0.7,
+                )
+                self.embeddings = AzureOpenAIEmbeddings(
+                    azure_endpoint=endpoint,
+                    api_version=settings.azure_openai_api_version,
+                    azure_deployment=settings.azure_openai_embedding_deployment,
+                    azure_ad_token_provider=token_provider,
+                )
+                logger.info("azure_openai_service_initialized", auth="access_token_env")
             else:
                 token_provider = _build_azure_ad_token_provider()
                 self.llm = AzureChatOpenAI(

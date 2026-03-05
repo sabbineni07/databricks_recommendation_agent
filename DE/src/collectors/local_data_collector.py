@@ -1,7 +1,7 @@
 """Local CSV data collector for testing and development."""
 from typing import List, Optional, Dict
 from pathlib import Path
-from shared.models.job_metrics import JobMetrics
+from shared.models.job_cluster_metrics import JobClusterMetrics
 from shared.utils.logging import get_logger
 import pandas as pd
 from datetime import datetime
@@ -29,14 +29,14 @@ class LocalDataCollector:
         
         logger.info("local_data_collector_initialized", csv_path=str(self.csv_path))
     
-    def collect_job_metrics(
+    def collect_job_cluster_metrics(
         self, 
         start_date: str, 
         end_date: str,
         job_ids: Optional[List[str]] = None,
         workspace_id: Optional[str] = None
-    ) -> List[JobMetrics]:
-        """Collect job metrics from CSV file.
+    ) -> List[JobClusterMetrics]:
+        """Collect job cluster metrics from CSV file.
         
         Args:
             start_date: Start date in YYYY-MM-DD format
@@ -45,10 +45,10 @@ class LocalDataCollector:
             workspace_id: Optional workspace ID to filter
             
         Returns:
-            List of JobMetrics objects
+            List of JobClusterMetrics objects
         """
         logger.info(
-            "collecting_job_metrics_from_csv",
+            "collecting_job_cluster_metrics_from_csv",
             start_date=start_date,
             end_date=end_date,
             job_count=len(job_ids) if job_ids else None,
@@ -82,7 +82,7 @@ class LocalDataCollector:
             df_filtered = df_filtered.copy()
             df_filtered['date'] = df_filtered['date'].dt.strftime('%Y-%m-%d')
             
-            # Convert to JobMetrics objects
+            # Convert to JobClusterMetrics objects
             metrics = []
             for _, row in df_filtered.iterrows():
                 try:
@@ -96,12 +96,12 @@ class LocalDataCollector:
                         elif key in ['workspace_id', 'job_id', 'job_run_id'] and value is not None:
                             row_dict[key] = str(value)
                     
-                    metric = JobMetrics(**row_dict)
+                    metric = JobClusterMetrics(**row_dict)
                     metrics.append(metric)
                 except Exception as e:
                     logger.warning("failed_to_parse_metric", error=str(e), row=row.to_dict())
             
-            logger.info("collected_job_metrics_from_csv", count=len(metrics))
+            logger.info("collected_job_cluster_metrics_from_csv", count=len(metrics))
             return metrics
                     
         except Exception as e:
@@ -128,7 +128,7 @@ class LocalDataCollector:
         
         try:
             # Get job metrics first
-            metrics = self.collect_job_metrics(start_date, end_date, job_ids)
+            metrics = self.collect_job_cluster_metrics(start_date, end_date, job_ids)
             
             if not metrics:
                 return []
@@ -196,7 +196,7 @@ class LocalDataCollector:
         
         try:
             # Get job metrics first
-            metrics = self.collect_job_metrics(start_date, end_date, job_ids)
+            metrics = self.collect_job_cluster_metrics(start_date, end_date, job_ids)
             
             if not metrics:
                 return []

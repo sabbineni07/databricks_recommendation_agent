@@ -6,7 +6,7 @@ from shared.config.settings import settings
 from shared.utils.logging import get_logger
 from typing import List, Dict, Optional
 from AI.src.services.azure_openai_service import AzureOpenAIService
-from shared.models.job_metrics import JobMetrics
+from shared.models.job_cluster_metrics import JobClusterMetrics
 
 logger = get_logger(__name__)
 
@@ -132,14 +132,14 @@ class AzureSearchService:
             logger.error("search_similar_error", error=str(e))
             return []
     
-    def index_job_metrics(self, metrics: JobMetrics) -> bool:
-        """Index raw job metrics for pattern matching.
+    def index_job_cluster_metrics(self, metrics: JobClusterMetrics) -> bool:
+        """Index raw job cluster metrics for pattern matching.
         
         Indexes utilization patterns and workload characteristics.
         Does NOT treat current config as recommendation.
         
         Args:
-            metrics: JobMetrics object to index
+            metrics: JobClusterMetrics object to index
             
         Returns:
             True if successful, False otherwise
@@ -196,7 +196,7 @@ class AzureSearchService:
                 "workload_type": metrics.workload_type or "Unknown",
                 "content": text,
                 "embedding": embedding,
-                "document_type": "job_metrics",
+                "document_type": "job_cluster_metrics",
                 "is_recommendation": False,
                 "config_quality": "unknown",
                 "metrics": json.dumps(metrics_dict),
@@ -204,22 +204,22 @@ class AzureSearchService:
             }
             
             self.client.upload_documents(documents=[document])
-            logger.info("indexed_job_metrics", job_id=metrics.job_id, job_run_id=metrics.job_run_id)
+            logger.info("indexed_job_cluster_metrics", job_id=metrics.job_id, job_run_id=metrics.job_run_id)
             return True
         except Exception as e:
-            logger.error("index_job_metrics_error", error=str(e))
+            logger.error("index_job_cluster_metrics_error", error=str(e))
             return False
     
     def search_similar_jobs(
         self, 
-        job_metrics: dict, 
+        job_cluster_metrics: dict, 
         top_k: int = 5,
         filter_recommendations: bool = False
     ) -> List[Dict]:
         """Search for similar jobs based on utilization patterns.
         
         Args:
-            job_metrics: Dictionary with job metrics (from aggregated metrics)
+            job_cluster_metrics: Dictionary with job cluster metrics (from aggregated metrics)
             top_k: Number of results to return
             filter_recommendations: If True, only return jobs that have recommendations
             
@@ -232,10 +232,10 @@ class AzureSearchService:
         
         try:
             # Build query from utilization patterns (not configs)
-            workload_type = job_metrics.get("workload_type", job_metrics.get("current_workload_type", "Unknown"))
-            avg_cpu = job_metrics.get("avg_cpu_utilization", job_metrics.get("avg_cpu_utilization_pct", 0))
-            avg_memory = job_metrics.get("avg_memory_utilization", job_metrics.get("avg_memory_utilization_pct", 0))
-            avg_nodes = job_metrics.get("avg_nodes_consumed", job_metrics.get("p95_nodes_consumed", 0))
+            workload_type = job_cluster_metrics.get("workload_type", job_cluster_metrics.get("current_workload_type", "Unknown"))
+            avg_cpu = job_cluster_metrics.get("avg_cpu_utilization", job_cluster_metrics.get("avg_cpu_utilization_pct", 0))
+            avg_memory = job_cluster_metrics.get("avg_memory_utilization", job_cluster_metrics.get("avg_memory_utilization_pct", 0))
+            avg_nodes = job_cluster_metrics.get("avg_nodes_consumed", job_cluster_metrics.get("p95_nodes_consumed", 0))
             
             query = f"""
             Workload Type: {workload_type}
@@ -260,8 +260,8 @@ class AzureSearchService:
             if filter_recommendations:
                 search_options["filter"] = "is_recommendation eq true"
             else:
-                # Prefer job_metrics documents for pattern matching
-                search_options["filter"] = "document_type eq 'job_metrics'"
+                # Prefer job_cluster_metrics documents for pattern matching
+                search_options["filter"] = "document_type eq 'job_cluster_metrics'"
             
             # Vector search
             results = self.client.search(
@@ -298,7 +298,7 @@ class AzureSearchService:
             # Search for job metrics documents
             results = self.client.search(
                 search_text=f"job_id eq '{job_id}'",
-                filter="document_type eq 'job_metrics'"
+                filter="document_type eq 'job_cluster_metrics'"
             )
             
             # Update job metrics documents to reference recommendation

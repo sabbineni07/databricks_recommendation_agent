@@ -48,8 +48,13 @@ setup: ## Initial project setup (create venv and install dependencies)
 
 ##@ Docker
 
-up: ## Start all Docker services
+up: ## Start all Docker services (fetches Azure access token for container if 'az' is available)
 	@echo "$(BLUE)Starting Docker services...$(NC)"
+	@if command -v az >/dev/null 2>&1; then \
+		echo "$(BLUE)Fetching Azure access token for container...$(NC)"; \
+		export AZURE_OPENAI_ACCESS_TOKEN=$$(az account get-access-token --resource https://cognitiveservices.azure.com --query accessToken -o tsv 2>/dev/null) || true; \
+		if [ -n "$$AZURE_OPENAI_ACCESS_TOKEN" ]; then echo "$(GREEN)Token set for AZURE_OPENAI_ACCESS_TOKEN$(NC)"; else echo "$(YELLOW)No token (run 'az login' if needed); container will use API key or DefaultAzureCredential$(NC)"; fi; \
+	fi; \
 	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) up -d
 	@echo "$(GREEN)Services started. Use 'make logs' to view logs$(NC)"
 

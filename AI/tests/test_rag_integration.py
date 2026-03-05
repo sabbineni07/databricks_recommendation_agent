@@ -15,7 +15,7 @@ try:
     from AI.src.services.mock_llm_service import MockLLMService
     from AI.src.chains.pattern_analysis_chain import PatternAnalysisChain
     from AI.src.chains.cost_optimization_chain import CostOptimizationChain
-    from shared.models.job_metrics import JobMetrics
+    from shared.models.job_cluster_metrics import JobClusterMetrics
 except ImportError as e:
     # If import fails, skip tests (for environments without full setup)
     pytest.skip(f"Could not import required modules: {e}", allow_module_level=True)
@@ -149,7 +149,7 @@ class TestCostOptimizationChain:
         
         result = chain.optimize(
             current_config={},
-            job_metrics={},
+            job_cluster_metrics={},
             budget_constraints={},
             pattern_analysis="Test analysis"
         )

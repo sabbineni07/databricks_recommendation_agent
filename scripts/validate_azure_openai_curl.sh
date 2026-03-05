@@ -53,7 +53,7 @@ fi
 echo
 echo "1. Chat completions..."
 CHAT_URL="$ENDPOINT/openai/deployments/$CHAT_DEPLOYMENT/chat/completions?api-version=$API_VERSION"
-curl -sS -X POST \
+CHAT_RESPONSE=$(curl -sS -X POST \
   "$CHAT_URL" \
   -H "Content-Type: application/json" \
   -H "$AUTH_HEADER" \
@@ -62,24 +62,20 @@ curl -sS -X POST \
       { "role": "user", "content": "Reply in one short sentence: what is 2+2?" }
     ],
     "max_tokens": 80
-  }' | jq -r '.choices[0].message.content // "NO_CONTENT"' || {
-    echo "Chat request failed."
-    exit 1
-  }
+  }') || { echo "Chat request failed."; exit 1; }
+echo "$CHAT_RESPONSE"
 
 echo
 echo "2. Embeddings..."
 EMB_URL="$ENDPOINT/openai/deployments/$EMBED_DEPLOYMENT/embeddings?api-version=$API_VERSION"
-curl -sS -X POST \
+EMB_RESPONSE=$(curl -sS -X POST \
   "$EMB_URL" \
   -H "Content-Type: application/json" \
   -H "$AUTH_HEADER" \
   -d '{
     "input": "Databricks cluster"
-  }' | jq -r '"Dimension: \(.data[0].embedding | length)\nVector (first 10): \((.data[0].embedding[0:10]) // [])"' || {
-    echo "Embeddings request failed."
-    exit 1
-  }
+  }') || { echo "Embeddings request failed."; exit 1; }
+echo "$EMB_RESPONSE"
 
 echo
 echo "============================================================"

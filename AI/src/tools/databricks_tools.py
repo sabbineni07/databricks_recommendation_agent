@@ -20,12 +20,12 @@ def _get_collector():
 
 
 @tool
-def get_job_metrics(
+def get_job_cluster_metrics(
     job_id: str,
     start_date: str,
     end_date: str
 ) -> Dict:
-    """Get job execution metrics for analysis.
+    """Get job cluster execution metrics for analysis.
     
     Args:
         job_id: The Databricks job ID
@@ -33,11 +33,11 @@ def get_job_metrics(
         end_date: End date in YYYY-MM-DD format
     
     Returns:
-        Dictionary containing aggregated job metrics
+        Dictionary containing aggregated job cluster metrics
     """
     try:
         collector = _get_collector()
-        metrics = collector.collect_job_metrics(
+        metrics = collector.collect_job_cluster_metrics(
             start_date=start_date,
             end_date=end_date,
             job_ids=[job_id]
@@ -51,7 +51,7 @@ def get_job_metrics(
             return aggregated.get(job_id, {})
         return {}
     except Exception as e:
-        logger.error("get_job_metrics_error", error=str(e))
+        logger.error("get_job_cluster_metrics_error", error=str(e))
         return {}
 
 

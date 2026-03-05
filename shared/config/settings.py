@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Azure OpenAI
     azure_openai_endpoint: Optional[str] = None
     azure_openai_api_key: Optional[str] = None
+    # Bearer token from env (e.g. for local/Docker testing: az account get-access-token --resource https://cognitiveservices.azure.com)
+    azure_openai_access_token: Optional[str] = None
     azure_openai_api_version: str = "2024-05-01-preview"  # Use 2024-05-01-preview for Foundry
     azure_openai_deployment_name: str = "gpt-4o"
     azure_openai_embedding_deployment: str = "text-embedding-3-small"
@@ -55,6 +57,8 @@ class Settings(BaseSettings):
     databricks_server_hostname: Optional[str] = None
     databricks_http_path: Optional[str] = None
     databricks_token: Optional[str] = None
+    # Centralized job cluster metrics Delta table (catalog.schema.table). Required for Databricks collector.
+    databricks_job_cluster_metrics_table: Optional[str] = None
     
     # Application
     app_env: str = "development"

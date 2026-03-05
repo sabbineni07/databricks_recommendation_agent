@@ -3,8 +3,9 @@
 Minimal validation for Azure OpenAI endpoint (no LangChain).
 
 Uses only: stdlib, python-dotenv, azure-identity.
-- If AZURE_OPENAI_API_KEY is set in .env: uses API key.
-- If not: uses Azure AD token (az login or Managed Identity).
+- If AZURE_OPENAI_API_KEY is set: uses API key.
+- Else if AZURE_OPENAI_ACCESS_TOKEN is set: uses Bearer token (e.g. for local/Docker).
+- Else: uses Azure AD (DefaultAzureCredential: az login or Managed Identity).
 
 Run from project root:
   pip install python-dotenv azure-identity
@@ -30,6 +31,7 @@ if env_file.exists():
 # Config from env (no pydantic)
 ENDPOINT = (os.environ.get("AZURE_OPENAI_ENDPOINT") or "").strip()
 API_KEY = (os.environ.get("AZURE_OPENAI_API_KEY") or "").strip()
+ACCESS_TOKEN = (os.environ.get("AZURE_OPENAI_ACCESS_TOKEN") or "").strip()
 API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-05-01-preview"
 CHAT_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME") or "gpt-4o"
 EMBEDDING_DEPLOYMENT = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") or "text-embedding-3-small"
@@ -42,9 +44,11 @@ def _normalize_endpoint(endpoint: str) -> str:
 
 
 def _get_auth_headers():
-    """Return dict of auth headers: either api-key or Authorization Bearer."""
+    """Return dict of auth headers: api-key, or Bearer from env token, or DefaultAzureCredential."""
     if API_KEY:
         return {"api-key": API_KEY}
+    if ACCESS_TOKEN:
+        return {"Authorization": f"Bearer {ACCESS_TOKEN}"}
     from azure.identity import DefaultAzureCredential
     credential = DefaultAzureCredential()
     token = credential.get_token("https://cognitiveservices.azure.com/.default")
@@ -73,7 +77,7 @@ def main():
 
     base = _normalize_endpoint(ENDPOINT)
     auth = _get_auth_headers()
-    auth_type = "api_key" if API_KEY else "Azure AD (token)"
+    auth_type = "api_key" if API_KEY else ("access_token (env)" if ACCESS_TOKEN else "Azure AD (DefaultAzureCredential)")
     print(f"\nEndpoint: {base}")
     print(f"Auth: {auth_type}")
 

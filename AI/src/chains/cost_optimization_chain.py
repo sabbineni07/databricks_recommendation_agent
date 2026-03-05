@@ -59,8 +59,8 @@ class CostOptimizationChain:
             ("human", """Current Configuration:
             {current_config}
             
-            Job Metrics:
-            {job_metrics}
+            Job cluster metrics:
+            {job_cluster_metrics}
             
             Budget Constraints:
             {budget_constraints}
@@ -87,12 +87,12 @@ class CostOptimizationChain:
             verbose=True
         )
     
-    def optimize(self, current_config: dict, job_metrics: dict, budget_constraints: dict, pattern_analysis: str = "") -> dict:
+    def optimize(self, current_config: dict, job_cluster_metrics: dict, budget_constraints: dict, pattern_analysis: str = "") -> dict:
         """Generate cost optimization recommendation.
         
         Args:
             current_config: Current cluster configuration
-            job_metrics: Aggregated job metrics
+            job_cluster_metrics: Aggregated job cluster metrics
             budget_constraints: Budget constraints
             pattern_analysis: Pattern analysis from PatternAnalysisChain (optional)
         """
@@ -105,7 +105,7 @@ class CostOptimizationChain:
                     # First, try to find similar successful recommendations
                     # Only use validated optimal recommendations by default
                     similar_recommendations = self.search_service.search_similar(
-                        pattern_analysis if pattern_analysis else str(job_metrics),
+                        pattern_analysis if pattern_analysis else str(job_cluster_metrics),
                         top_k=3,
                         filter_quality=True  # Only use optimal recommendations
                     )
@@ -138,7 +138,7 @@ class CostOptimizationChain:
                     else:
                         # Fallback: find similar job patterns for context
                         similar_jobs = self.search_service.search_similar_jobs(
-                            job_metrics,
+                            job_cluster_metrics,
                             top_k=3,
                             filter_recommendations=False
                         )
@@ -176,7 +176,7 @@ class CostOptimizationChain:
             
             result = self.chain.run(
                 current_config=str(current_config),
-                job_metrics=str(job_metrics),
+                job_cluster_metrics=str(job_cluster_metrics),
                 budget_constraints=str(budget_constraints),
                 pattern_analysis=pattern_analysis if pattern_analysis else "No pattern analysis available.",
                 historical_context=historical_context

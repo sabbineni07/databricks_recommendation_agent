@@ -23,11 +23,11 @@ def test_local_data_collector_initialization():
     assert collector.csv_path is not None
 
 
-def test_collect_job_metrics():
-    """Test collecting job metrics from CSV."""
+def test_collect_job_cluster_metrics():
+    """Test collecting job cluster metrics from CSV."""
     collector = LocalDataCollector()
     
-    metrics = collector.collect_job_metrics(
+    metrics = collector.collect_job_cluster_metrics(
         start_date="2024-01-15",
         end_date="2024-01-20",
         job_ids=["job-001"]
@@ -45,11 +45,11 @@ def test_collect_job_metrics():
         assert hasattr(metric, 'avg_memory_utilization_pct')
 
 
-def test_collect_job_metrics_multiple_jobs():
-    """Test collecting metrics for multiple jobs."""
+def test_collect_job_cluster_metrics_multiple_jobs():
+    """Test collecting cluster metrics for multiple jobs."""
     collector = LocalDataCollector()
     
-    metrics = collector.collect_job_metrics(
+    metrics = collector.collect_job_cluster_metrics(
         start_date="2024-01-15",
         end_date="2024-01-20",
         job_ids=["job-001", "job-002"]

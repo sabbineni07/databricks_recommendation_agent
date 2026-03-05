@@ -43,8 +43,8 @@ class PatternAnalysisChain:
             - Historical configurations may be suboptimal
             - Focus on utilization patterns, not copying configs
             - Analyze what the patterns tell you about workload needs"""),
-            ("human", """Job Metrics:
-            {job_metrics}
+            ("human", """Job cluster metrics:
+            {job_cluster_metrics}
             
             {historical_context}
             
@@ -57,11 +57,11 @@ class PatternAnalysisChain:
             verbose=True
         )
     
-    def analyze(self, job_metrics: dict) -> str:
-        """Analyze job metrics and return pattern analysis.
+    def analyze(self, job_cluster_metrics: dict) -> str:
+        """Analyze job cluster metrics and return pattern analysis.
         
         Args:
-            job_metrics: Dictionary with job metrics
+            job_cluster_metrics: Dictionary with job cluster metrics
             
         Returns:
             Pattern analysis text
@@ -73,7 +73,7 @@ class PatternAnalysisChain:
             if self.use_rag and self.search_service:
                 try:
                     similar_jobs = self.search_service.search_similar_jobs(
-                        job_metrics, 
+                        job_cluster_metrics, 
                         top_k=5,
                         filter_recommendations=False
                     )
@@ -115,7 +115,7 @@ class PatternAnalysisChain:
                     # Continue without RAG context
             
             result = self.chain.run(
-                job_metrics=str(job_metrics),
+                job_cluster_metrics=str(job_cluster_metrics),
                 historical_context=historical_context
             )
             logger.info("pattern_analysis_complete", used_rag=self.use_rag)

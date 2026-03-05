@@ -31,7 +31,7 @@ def index_historical_metrics(csv_path: str = None, limit: int = None):
         
         # Collect all metrics
         # Use a wide date range to get all data
-        metrics = collector.collect_job_metrics(
+        metrics = collector.collect_job_cluster_metrics(
             start_date="2020-01-01",
             end_date="2030-12-31",
             job_ids=None
@@ -48,7 +48,7 @@ def index_historical_metrics(csv_path: str = None, limit: int = None):
         
         for metric in metrics:
             try:
-                success = search_service.index_job_metrics(metric)
+                success = search_service.index_job_cluster_metrics(metric)
                 if success:
                     indexed += 1
                 else:

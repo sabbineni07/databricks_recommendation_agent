@@ -28,8 +28,8 @@ class ExplanationChain:
             ("human", """Recommendation:
             {recommendation}
             
-            Job Metrics:
-            {job_metrics}
+            Job cluster metrics:
+            {job_cluster_metrics}
             
             Pattern Analysis:
             {pattern_analysis}
@@ -49,7 +49,7 @@ class ExplanationChain:
     def explain(
         self,
         recommendation: dict,
-        job_metrics: dict,
+        job_cluster_metrics: dict,
         pattern_analysis: str,
         risk_assessment: dict
     ) -> str:
@@ -57,7 +57,7 @@ class ExplanationChain:
         try:
             result = self.chain.run(
                 recommendation=str(recommendation),
-                job_metrics=str(job_metrics),
+                job_cluster_metrics=str(job_cluster_metrics),
                 pattern_analysis=pattern_analysis,
                 risk_assessment=str(risk_assessment)
             )

@@ -46,6 +46,9 @@ services:
       # Azure (optional - can be set via .env)
       AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
       AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      # Pass a token for local testing (short-lived): az account get-access-token --resource https://cognitiveservices.azure.com --query accessToken -o tsv
+      AZURE_OPENAI_ACCESS_TOKEN: ${AZURE_OPENAI_ACCESS_TOKEN:-}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-05-01-preview}
       AZURE_OPENAI_DEPLOYMENT_NAME: ${AZURE_OPENAI_DEPLOYMENT_NAME:-gpt-4o}
       AZURE_OPENAI_EMBEDDING_DEPLOYMENT: ${AZURE_OPENAI_EMBEDDING_DEPLOYMENT:-text-embedding-3-small}
     ports:

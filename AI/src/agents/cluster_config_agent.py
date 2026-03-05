@@ -7,7 +7,7 @@ from AI.src.services.azure_openai_service import AzureOpenAIService
 from AI.src.chains.pattern_analysis_chain import PatternAnalysisChain
 from AI.src.chains.cost_optimization_chain import CostOptimizationChain
 from AI.src.chains.explanation_chain import ExplanationChain
-from AI.src.tools.databricks_tools import get_job_metrics, get_resource_utilization, get_cost_analysis
+from AI.src.tools.databricks_tools import get_job_cluster_metrics, get_resource_utilization, get_cost_analysis
 from AI.src.tools.cost_calculator_tools import calculate_cluster_cost, calculate_cost_savings
 from AI.src.tools.validation_tools import validate_performance, assess_risks, parse_vcpus_from_node_type
 from AI.src.utils.token_usage import TokenUsageTracker
@@ -22,7 +22,7 @@ class RecommendationState(TypedDict):
     job_id: str
     start_date: str
     end_date: str
-    job_metrics: Dict
+    job_cluster_metrics: Dict
     resource_utilization: Dict
     cost_analysis: Dict
     pattern_analysis: str
@@ -59,7 +59,7 @@ class ClusterConfigAgent:
             logger.info("collecting_job_data", job_id=state["job_id"])
             
             # Collect metrics
-            state["job_metrics"] = get_job_metrics.invoke({
+            state["job_cluster_metrics"] = get_job_cluster_metrics.invoke({
                 "job_id": state["job_id"],
                 "start_date": state["start_date"],
                 "end_date": state["end_date"]
@@ -82,7 +82,7 @@ class ClusterConfigAgent:
         def analyze_patterns(state: RecommendationState) -> RecommendationState:
             """Analyze workload patterns."""
             logger.info("analyzing_patterns", job_id=state["job_id"])
-            result = pattern_chain.analyze(state["job_metrics"])
+            result = pattern_chain.analyze(state["job_cluster_metrics"])
             state["pattern_analysis"] = result
             
             # Track token usage
@@ -90,7 +90,7 @@ class ClusterConfigAgent:
                 state["token_tracker"].estimate_chain_usage(
                     chain_name="pattern_analysis",
                     model=model_name,
-                    input_text=state["job_metrics"],
+                    input_text=state["job_cluster_metrics"],
                     output_text=result
                 )
             
@@ -101,9 +101,9 @@ class ClusterConfigAgent:
             logger.info("optimizing_costs", job_id=state["job_id"])
             
             current_config = {
-                "node_type": state["job_metrics"].get("current_node_type", "Standard_E8s_v3"),
-                "min_workers": state["job_metrics"].get("current_min_workers", 1),
-                "max_workers": state["job_metrics"].get("current_max_workers", 16),
+                "node_type": state["job_cluster_metrics"].get("current_node_type", "Standard_E8s_v3"),
+                "min_workers": state["job_cluster_metrics"].get("current_min_workers", 1),
+                "max_workers": state["job_cluster_metrics"].get("current_max_workers", 16),
             }
             
             budget_constraints = {
@@ -113,7 +113,7 @@ class ClusterConfigAgent:
             
             result = cost_chain.optimize(
                 current_config,
-                state["job_metrics"],
+                state["job_cluster_metrics"],
                 budget_constraints,
                 pattern_analysis=state["pattern_analysis"]
             )
@@ -124,7 +124,7 @@ class ClusterConfigAgent:
                 # Build input text for cost optimization
                 input_data = {
                     "current_config": current_config,
-                    "job_metrics": state["job_metrics"],
+                    "job_cluster_metrics": state["job_cluster_metrics"],
                     "budget_constraints": budget_constraints,
                     "pattern_analysis": state["pattern_analysis"]
                 }
@@ -145,9 +145,9 @@ class ClusterConfigAgent:
             current_peak_memory = state["resource_utilization"].get("peak_memory_utilization_pct", 0)
             
             # Extract vCPUs from node type
-            current_node_type = state["job_metrics"].get("current_node_type", "Standard_E8s_v3")
+            current_node_type = state["job_cluster_metrics"].get("current_node_type", "Standard_E8s_v3")
             current_vcpus = parse_vcpus_from_node_type(current_node_type)
-            current_max_workers = state["job_metrics"].get("current_max_workers", 16)
+            current_max_workers = state["job_cluster_metrics"].get("current_max_workers", 16)
             
             recommended_vcpus = state["cost_optimization"].get("vcpus", 8)
             recommended_max_workers = state["cost_optimization"].get("max_workers", 8)
@@ -167,7 +167,7 @@ class ClusterConfigAgent:
             logger.info("assessing_risks", job_id=state["job_id"])
             
             # Calculate configuration change magnitude
-            current_capacity = state["job_metrics"].get("current_max_workers", 16) * 8  # Simplified
+            current_capacity = state["job_cluster_metrics"].get("current_max_workers", 16) * 8  # Simplified
             recommended_capacity = state["cost_optimization"].get("max_workers", 8) * state["cost_optimization"].get("vcpus", 8)
             change_magnitude = abs((current_capacity - recommended_capacity) / current_capacity * 100) if current_capacity > 0 else 0
             
@@ -183,11 +183,11 @@ class ClusterConfigAgent:
             logger.info("generating_recommendation", job_id=state["job_id"])
             
             # Calculate costs
-            current_node_type = state["job_metrics"].get("current_node_type", "Standard_E8s_v3")
+            current_node_type = state["job_cluster_metrics"].get("current_node_type", "Standard_E8s_v3")
             current_cost = calculate_cluster_cost.invoke({
                 "node_type": current_node_type,
-                "min_workers": state["job_metrics"].get("current_min_workers", 1),
-                "max_workers": state["job_metrics"].get("current_max_workers", 16),
+                "min_workers": state["job_cluster_metrics"].get("current_min_workers", 1),
+                "max_workers": state["job_cluster_metrics"].get("current_max_workers", 16),
                 "avg_nodes": state["resource_utilization"].get("avg_nodes_consumed", 4),
                 "hours_per_month": 730
             })
@@ -223,7 +223,7 @@ class ClusterConfigAgent:
             
             result = explanation_chain.explain(
                 recommendation=state["recommendation"],
-                job_metrics=state["job_metrics"],
+                job_cluster_metrics=state["job_cluster_metrics"],
                 pattern_analysis=state["pattern_analysis"],
                 risk_assessment=state["risk_assessment"]
             )
@@ -234,7 +234,7 @@ class ClusterConfigAgent:
                 # Build input text for explanation
                 input_data = {
                     "recommendation": state["recommendation"],
-                    "job_metrics": state["job_metrics"],
+                    "job_cluster_metrics": state["job_cluster_metrics"],
                     "pattern_analysis": state["pattern_analysis"],
                     "risk_assessment": state["risk_assessment"]
                 }
@@ -299,7 +299,7 @@ class ClusterConfigAgent:
             "job_id": job_id,
             "start_date": start_date,
             "end_date": end_date,
-            "job_metrics": {},
+            "job_cluster_metrics": {},
             "resource_utilization": {},
             "cost_analysis": {},
             "pattern_analysis": "",
@@ -357,8 +357,8 @@ class ClusterConfigAgent:
             recommendation_doc = {
                 "recommendation_id": str(request_id),
                 "job_id": job_id,
-                "workload_type": final_state["job_metrics"].get("workload_type", 
-                    final_state["job_metrics"].get("current_workload_type", "Unknown")),
+                "workload_type": final_state["job_cluster_metrics"].get("workload_type", 
+                    final_state["job_cluster_metrics"].get("current_workload_type", "Unknown")),
                 "rationale": final_state["recommendation"].get("rationale", ""),
                 "detailed_explanation": final_state["explanation"],
                 **final_state["recommendation"]

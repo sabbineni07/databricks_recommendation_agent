@@ -1,9 +1,9 @@
 """Shared data models."""
-from .job_metrics import JobMetrics
+from .job_cluster_metrics import JobClusterMetrics
 from .recommendations import Recommendation, RecommendationStatus, RiskLevel
 
 __all__ = [
-    "JobMetrics",
+    "JobClusterMetrics",
     "Recommendation",
     "RecommendationStatus",
     "RiskLevel"
