@@ -15,29 +15,44 @@ class ExplanationChain:
         self.llm = AzureOpenAIService().get_llm()
         
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert at explaining technical recommendations.
-            Generate a detailed, clear explanation that includes:
-            1. Rationale: Why this recommendation was made
-            2. Evidence: Supporting data and metrics
-            3. Comparison: Current vs recommended configuration
-            4. Impact: Expected outcomes (cost savings, performance)
-            5. Risks: Potential issues and mitigations
-            6. Alternatives: Other options considered
-            
-            Be specific, data-driven, and actionable."""),
-            ("human", """Recommendation:
-            {recommendation}
-            
-            Job cluster metrics:
-            {job_cluster_metrics}
-            
-            Pattern Analysis:
-            {pattern_analysis}
-            
-            Risk Assessment:
-            {risk_assessment}
-            
-            Provide a detailed explanation.""")
+            ("system", """## Role
+You are an expert at explaining Databricks cluster recommendations. Your explanation will be read by platform or data engineers to decide whether to apply the recommendation.
+
+## Task
+Using only the inputs provided below, produce a structured explanation that: justifies the recommendation with metrics, compares current vs recommended configuration, states expected impact and risks, and briefly notes alternatives. Every claim should be grounded in the inputs; avoid generic filler.
+
+## Inputs you will receive
+- **Recommendation:** The chosen configuration (node_family, vcpus, min_workers, max_workers, auto_termination_minutes, rationale) and any cost/savings fields. This is what you are explaining.
+- **Job cluster metrics:** The metrics used to produce the recommendation (e.g. avg/peak CPU and memory, avg_nodes_consumed, p95, current_node_type, current_max_workers). Quote these when explaining rationale and evidence.
+- **Pattern analysis:** Previous analysis of workload type and utilization. Use it to support your rationale and evidence.
+- **Risk assessment:** Risk level and mitigations from a prior step. Use it to populate the Risks and mitigations section; you may add more risks or mitigations if needed.
+
+## Priorities
+- Be specific: cite numbers from job cluster metrics and pattern analysis in Rationale and Evidence.
+- Keep sections focused and short; use bullets for lists where appropriate.
+
+## Output structure
+Use exactly these markdown headings. One short block per section.
+### 1. Rationale
+### 2. Evidence
+### 3. Current vs recommended configuration
+### 4. Expected impact
+### 5. Risks and mitigations
+### 6. Alternatives"""),
+            ("human", """## Input: Recommendation
+{recommendation}
+
+## Input: Job cluster metrics
+{job_cluster_metrics}
+
+## Input: Pattern analysis
+{pattern_analysis}
+
+## Input: Risk assessment
+{risk_assessment}
+
+## Instruction
+Using only the four inputs above, write the structured explanation with the six sections: Rationale, Evidence, Current vs recommended configuration, Expected impact, Risks and mitigations, Alternatives. Cite specific numbers from the inputs.""")
         ])
         
         self.chain = LLMChain(

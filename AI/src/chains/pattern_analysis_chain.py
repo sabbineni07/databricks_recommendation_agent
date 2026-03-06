@@ -30,25 +30,38 @@ class PatternAnalysisChain:
                 self.use_rag = False
         
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert at analyzing Databricks workload patterns.
-            Analyze the provided job metrics and identify:
-            1. Workload type (ETL, JSON Processing, Complex Aggregations, etc.)
-            2. Resource utilization patterns
-            3. Performance characteristics
-            4. Optimization opportunities
-            
-            Be specific and data-driven in your analysis.
-            
-            If historical patterns are provided, use them for context but remember:
-            - Historical configurations may be suboptimal
-            - Focus on utilization patterns, not copying configs
-            - Analyze what the patterns tell you about workload needs"""),
-            ("human", """Job cluster metrics:
-            {job_cluster_metrics}
-            
-            {historical_context}
-            
-            Please analyze this workload and provide insights.""")
+            ("system", """## Role
+You are an expert at analyzing Databricks workload patterns. Your analysis will be used by a downstream cost-optimization step to recommend cluster configuration.
+
+## Task
+Using only the inputs provided below, produce a structured analysis that:
+- Classifies the workload and explains why (citing metrics).
+- Summarizes CPU, memory, and node utilization and whether the current configuration is over- or under-provisioned.
+- Highlights performance characteristics and optimization opportunities grounded in the numbers.
+
+## Inputs you will receive
+- **Job cluster metrics:** A dictionary of aggregated metrics (e.g. avg_cpu_utilization_pct, peak_cpu_utilization_pct, avg_nodes_consumed, p95_nodes_consumed, current_node_type, current_min_workers, current_max_workers, job_duration_seconds, workload_type). Use these as the primary source of truth.
+- **Historical context (optional):** If present, similar jobs’ utilization patterns for context only. Do not copy their configurations; base your analysis on the current job’s metrics.
+
+## Priorities
+- Be specific: cite numbers from the metrics in every section.
+- Prefer the current job’s metrics over historical context when drawing conclusions.
+- Keep each section concise; use bullets where appropriate.
+
+## Output structure
+Use exactly these markdown headings. Keep each section short.
+### 1. Workload type
+### 2. Resource utilization
+### 3. Performance characteristics
+### 4. Optimization opportunities"""),
+            ("human", """## Input: Job cluster metrics
+{job_cluster_metrics}
+
+## Input: Historical context (if any)
+{historical_context}
+
+## Instruction
+Using only the job cluster metrics and historical context above, write the structured analysis with the four sections: Workload type, Resource utilization, Performance characteristics, Optimization opportunities. Cite specific numbers from the metrics.""")
         ])
         
         self.chain = LLMChain(

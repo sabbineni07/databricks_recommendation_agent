@@ -23,9 +23,9 @@ def parse_vcpus_from_node_type(node_type: str) -> int:
     if not node_type:
         return 8  # Default fallback
     
-    # Pattern: Standard_{Family}{Number}s_v{Version}
+    # Pattern: Standard_{Family}{Number}s_v{Version} (Family: D, E, F, L)
     # Extract the number after the family letter and before 's'
-    match = re.search(r'Standard_[DEF]\d+', node_type)
+    match = re.search(r'Standard_[DEFL]\d+', node_type)
     if match:
         # Extract the number part (e.g., "E8" -> "8")
         number_match = re.search(r'\d+', match.group())

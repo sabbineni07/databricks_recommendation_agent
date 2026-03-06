@@ -221,6 +221,7 @@ class ClusterConfigAgent:
             
             state["recommendation"] = {
                 **state["cost_optimization"],
+                "node_type": recommended_node_type,
                 "current_cost": current_cost["monthly_cost"],
                 "recommended_cost": recommended_cost["monthly_cost"],
                 "savings_usd": savings["savings_usd"],
@@ -387,8 +388,17 @@ class ClusterConfigAgent:
             logger.warning("recommendation_indexing_failed", error=str(e))
             # Continue without indexing - not critical for recommendation generation
         
+        # Build current configuration for side-by-side comparison
+        jcm = final_state.get("job_cluster_metrics") or {}
+        current_configuration = {
+            "node_type": jcm.get("current_node_type", "Standard_E8s_v3"),
+            "min_workers": jcm.get("current_min_workers", 1),
+            "max_workers": jcm.get("current_max_workers", 16),
+        }
+
         return {
             "request_id": str(request_id),
+            "current_configuration": current_configuration,
             "recommendation": final_state["recommendation"],
             "explanation": final_state["explanation"],
             "pattern_analysis": final_state["pattern_analysis"],
