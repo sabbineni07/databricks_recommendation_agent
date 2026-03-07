@@ -1,4 +1,5 @@
 """Application settings management."""
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -6,26 +7,25 @@ from typing import Optional
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
-    # Azure Configuration
+    # Azure Configuration (set in .env)
     azure_subscription_id: Optional[str] = None
     azure_tenant_id: Optional[str] = None
     azure_client_id: Optional[str] = None
     azure_client_secret: Optional[str] = None
-    azure_resource_group: str = "rg-databricks-ai-agent"
+    azure_resource_group: Optional[str] = None
     
-    # Azure OpenAI
+    # Azure OpenAI (set in .env)
     azure_openai_endpoint: Optional[str] = None
     azure_openai_api_key: Optional[str] = None
-    # Bearer token from env (e.g. for local/Docker testing: az account get-access-token --resource https://cognitiveservices.azure.com)
     azure_openai_access_token: Optional[str] = None
-    azure_openai_api_version: str = "2024-05-01-preview"  # Use 2024-05-01-preview for Foundry
-    azure_openai_deployment_name: str = "gpt-4o"
-    azure_openai_embedding_deployment: str = "text-embedding-3-small"
+    azure_openai_api_version: Optional[str] = None
+    azure_openai_deployment_name: Optional[str] = None
+    azure_openai_embedding_deployment: Optional[str] = None
     
-    # Azure AI Search
+    # Azure AI Search (set in .env)
     azure_search_endpoint: Optional[str] = None
     azure_search_api_key: Optional[str] = None
-    azure_search_index_name: str = "recommendations-index"
+    azure_search_index_name: Optional[str] = None
     
     # Database Configuration
     # PostgreSQL (preferred for local development)
@@ -33,7 +33,11 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
     postgres_user: Optional[str] = None
     postgres_password: Optional[str] = None
-    postgres_database: Optional[str] = None
+    # Accept POSTGRES_DATABASE or POSTGRES_DB (docker-compose uses POSTGRES_DB)
+    postgres_database: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("POSTGRES_DATABASE", "POSTGRES_DB"),
+    )
     postgres_ssl_mode: str = "prefer"  # disable, allow, prefer, require, verify-ca, verify-full
     
     # Azure SQL Database (legacy/alternative)
@@ -45,10 +49,10 @@ class Settings(BaseSettings):
     # Database selection
     use_postgres: bool = True  # Set to False to use SQL Server
     
-    # Azure Blob Storage
+    # Azure Blob Storage (set in .env)
     azure_storage_account: Optional[str] = None
     azure_storage_key: Optional[str] = None
-    azure_storage_container: str = "ai-agent-data"
+    azure_storage_container: Optional[str] = None
     
     # Azure Key Vault
     azure_key_vault_name: Optional[str] = None

@@ -53,36 +53,39 @@ class AzureOpenAIService:
         use_api_key = settings.azure_openai_api_key and settings.azure_openai_api_key.strip()
         use_token_env = settings.azure_openai_access_token and settings.azure_openai_access_token.strip()
         endpoint = _normalize_azure_endpoint(settings.azure_openai_endpoint)
-        
+        api_version = settings.azure_openai_api_version or "2024-05-01-preview"
+        deployment = settings.azure_openai_deployment_name or "gpt-4o"
+        embedding_deployment = settings.azure_openai_embedding_deployment or "text-embedding-3-small"
+
         try:
             if use_api_key:
                 self.llm = AzureChatOpenAI(
                     azure_endpoint=endpoint,
                     api_key=settings.azure_openai_api_key,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_deployment_name,
+                    api_version=api_version,
+                    azure_deployment=deployment,
                     temperature=0.7,
                 )
                 self.embeddings = AzureOpenAIEmbeddings(
                     azure_endpoint=endpoint,
                     api_key=settings.azure_openai_api_key,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_embedding_deployment,
+                    api_version=api_version,
+                    azure_deployment=embedding_deployment,
                 )
                 logger.info("azure_openai_service_initialized", auth="api_key")
             elif use_token_env:
                 token_provider = _build_env_token_provider(settings.azure_openai_access_token)
                 self.llm = AzureChatOpenAI(
                     azure_endpoint=endpoint,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_deployment_name,
+                    api_version=api_version,
+                    azure_deployment=deployment,
                     azure_ad_token_provider=token_provider,
                     temperature=0.7,
                 )
                 self.embeddings = AzureOpenAIEmbeddings(
                     azure_endpoint=endpoint,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_embedding_deployment,
+                    api_version=api_version,
+                    azure_deployment=embedding_deployment,
                     azure_ad_token_provider=token_provider,
                 )
                 logger.info("azure_openai_service_initialized", auth="access_token_env")
@@ -90,15 +93,15 @@ class AzureOpenAIService:
                 token_provider = _build_azure_ad_token_provider()
                 self.llm = AzureChatOpenAI(
                     azure_endpoint=endpoint,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_deployment_name,
+                    api_version=api_version,
+                    azure_deployment=deployment,
                     azure_ad_token_provider=token_provider,
                     temperature=0.7,
                 )
                 self.embeddings = AzureOpenAIEmbeddings(
                     azure_endpoint=endpoint,
-                    api_version=settings.azure_openai_api_version,
-                    azure_deployment=settings.azure_openai_embedding_deployment,
+                    api_version=api_version,
+                    azure_deployment=embedding_deployment,
                     azure_ad_token_provider=token_provider,
                 )
                 logger.info("azure_openai_service_initialized", auth="azure_ad")

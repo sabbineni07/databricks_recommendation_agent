@@ -32,7 +32,7 @@ def get_database_url() -> str:
             port = settings.postgres_port
             user = settings.postgres_user
             password = settings.postgres_password
-            database = settings.postgres_database
+            database = settings.postgres_database or "databricks_agent"
         
         # Build PostgreSQL connection string
         ssl_mode = settings.postgres_ssl_mode

@@ -22,11 +22,12 @@ class AzureSearchService:
             self.client = None
             self.openai_service = AzureOpenAIService()
             return
-        
+
+        index_name = settings.azure_search_index_name or "recommendations-index"
         try:
             self.client = SearchClient(
                 endpoint=settings.azure_search_endpoint,
-                index_name=settings.azure_search_index_name,
+                index_name=index_name,
                 credential=AzureKeyCredential(settings.azure_search_api_key)
             )
             self.openai_service = AzureOpenAIService()
