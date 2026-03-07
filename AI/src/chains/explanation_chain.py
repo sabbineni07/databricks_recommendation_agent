@@ -1,5 +1,5 @@
 """Explanation generation chain."""
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from AI.src.services.azure_openai_service import AzureOpenAIService
 from shared.utils.logging import get_logger

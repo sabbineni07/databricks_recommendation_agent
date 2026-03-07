@@ -1,6 +1,6 @@
 """Application settings management."""
 from pydantic import AliasChoices, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
@@ -72,10 +72,11 @@ class Settings(BaseSettings):
     use_local_data: bool = False  # Set to True to use CSV data instead of Databricks
     local_data_path: Optional[str] = None  # Path to CSV file, defaults to data/sample_job_metrics.csv
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
 
 
 # Global settings instance
@@ -83,29 +84,19 @@ class Settings(BaseSettings):
 import warnings
 import os
 
-# Temporarily disable .env file loading if there are permission issues
-env_file_backup = None
+# Disable .env loading if file exists but cannot be read (permission issues)
+use_env_file = True
 if os.path.exists(".env"):
     try:
-        # Test if we can read the file
         with open(".env", "r"):
             pass
     except (PermissionError, IOError):
-        # Can't read .env, temporarily rename the Config's env_file
-        env_file_backup = Settings.Config.env_file
-        Settings.Config.env_file = None
+        use_env_file = False
+        warnings.warn("Could not read .env file due to permissions. Using environment variables only.")
 
 try:
-    settings = Settings()
-    if env_file_backup is not None:
-        # Restore the original env_file setting
-        Settings.Config.env_file = env_file_backup
-        warnings.warn("Could not read .env file due to permissions. Using environment variables only.")
+    settings = Settings() if use_env_file else Settings(_env_file=None)
 except Exception as e:
-    # Fallback: create settings without .env file
-    if env_file_backup is not None:
-        Settings.Config.env_file = env_file_backup
     warnings.warn(f"Error loading settings: {e}. Using defaults.")
-    # Create minimal settings
     settings = Settings(_env_file=None)
 

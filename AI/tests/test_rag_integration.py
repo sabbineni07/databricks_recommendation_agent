@@ -106,12 +106,12 @@ class TestPatternAnalysisChain:
         mock_openai.return_value = _make_mock_openai_with_real_llm()
         chain = PatternAnalysisChain(use_rag=False)
         chain.chain = Mock()
-        chain.chain.run = Mock(return_value="Test analysis")
+        chain.chain.invoke = Mock(return_value="Test analysis")
         
         result = chain.analyze({"job_id": "test-123"})
         
         assert result == "Test analysis"
-        chain.chain.run.assert_called_once()
+        chain.chain.invoke.assert_called_once()
 
 
 class TestCostOptimizationChain:
@@ -138,7 +138,7 @@ class TestCostOptimizationChain:
         mock_openai.return_value = _make_mock_openai_with_real_llm()
         chain = CostOptimizationChain(use_rag=False)
         chain.chain = Mock()
-        chain.chain.run = Mock(return_value=json.dumps({
+        chain.chain.invoke = Mock(return_value=json.dumps({
             "node_family": "E",
             "vcpus": 8,
             "min_workers": 1,
@@ -156,5 +156,5 @@ class TestCostOptimizationChain:
         
         assert result["node_family"] == "E"
         assert result["vcpus"] == 8
-        chain.chain.run.assert_called_once()
+        chain.chain.invoke.assert_called_once()
 

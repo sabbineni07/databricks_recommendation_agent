@@ -2,7 +2,7 @@
 import pytest
 import sys
 from pathlib import Path
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -20,7 +20,7 @@ except ImportError as e:
 @pytest.mark.asyncio
 async def test_health_endpoint():
     """Test health check endpoint."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/health/")
         assert response.status_code == 200
         data = response.json()
@@ -31,7 +31,7 @@ async def test_health_endpoint():
 @pytest.mark.asyncio
 async def test_readiness_endpoint():
     """Test readiness endpoint."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/health/ready")
         assert response.status_code in [200, 503]  # 503 if services not ready
         data = response.json()

@@ -1,7 +1,7 @@
 """Database models for cost tracking and recommendations."""
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, Date, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
 from datetime import datetime, date
 import uuid

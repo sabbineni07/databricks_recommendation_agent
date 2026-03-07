@@ -1,5 +1,5 @@
 """Validation tools for LangChain."""
-from langchain.tools import tool
+from langchain_core.tools import tool
 from typing import Dict
 import re
 

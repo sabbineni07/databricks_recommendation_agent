@@ -1,5 +1,5 @@
 """Databricks data collection tools for LangChain."""
-from langchain.tools import tool
+from langchain_core.tools import tool
 from typing import Dict, List
 from DE.src.collectors.databricks_collector import DatabricksCollector
 from DE.src.collectors.local_data_collector import LocalDataCollector

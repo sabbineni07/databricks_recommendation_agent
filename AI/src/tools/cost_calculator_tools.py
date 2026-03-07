@@ -1,5 +1,5 @@
 """Cost calculation tools for LangChain."""
-from langchain.tools import tool
+from langchain_core.tools import tool
 from typing import Dict
 
 # Node type pricing (example - should come from actual pricing data or API)
