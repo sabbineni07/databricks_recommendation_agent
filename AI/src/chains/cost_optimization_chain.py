@@ -1,6 +1,6 @@
 """Cost optimization chain."""
 from langchain.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
 from AI.src.services.azure_openai_service import AzureOpenAIService
 from shared.utils.logging import get_logger
 import json
@@ -102,11 +102,7 @@ Using only the inputs provided below, recommend an optimal cluster configuration
 Using only the inputs above, output a single JSON object with keys node_family, vcpus, min_workers, max_workers, auto_termination_minutes, rationale. No other text, no markdown.""")
         ])
         
-        self.chain = LLMChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            verbose=True
-        )
+        self.chain = self.prompt | self.llm | StrOutputParser()
     
     def optimize(self, current_config: dict, job_cluster_metrics: dict, budget_constraints: dict, pattern_analysis: str = "") -> dict:
         """Generate cost optimization recommendation.
@@ -195,13 +191,13 @@ Using only the inputs above, output a single JSON object with keys node_family, 
                     logger.warning("rag_search_failed", error=str(e))
                     # Continue without RAG context
             
-            result = self.chain.run(
-                current_config=str(current_config),
-                job_cluster_metrics=str(job_cluster_metrics),
-                budget_constraints=str(budget_constraints),
-                pattern_analysis=pattern_analysis if pattern_analysis else "No pattern analysis available.",
-                historical_context=historical_context
-            )
+            result = self.chain.invoke({
+                "current_config": str(current_config),
+                "job_cluster_metrics": str(job_cluster_metrics),
+                "budget_constraints": str(budget_constraints),
+                "pattern_analysis": pattern_analysis if pattern_analysis else "No pattern analysis available.",
+                "historical_context": historical_context
+            })
             raw = result if isinstance(result, str) else str(result)
             json_str = _extract_json_from_response(raw)
             if json_str:

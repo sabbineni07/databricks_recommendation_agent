@@ -1,6 +1,6 @@
 """Pattern analysis chain."""
 from langchain.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
 from AI.src.services.azure_openai_service import AzureOpenAIService
 from shared.utils.logging import get_logger
 from typing import Optional
@@ -64,11 +64,7 @@ Use exactly these markdown headings. Keep each section short.
 Using only the job cluster metrics and historical context above, write the structured analysis with the four sections: Workload type, Resource utilization, Performance characteristics, Optimization opportunities. Cite specific numbers from the metrics.""")
         ])
         
-        self.chain = LLMChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            verbose=True
-        )
+        self.chain = self.prompt | self.llm | StrOutputParser()
     
     def analyze(self, job_cluster_metrics: dict) -> str:
         """Analyze job cluster metrics and return pattern analysis.
@@ -127,12 +123,12 @@ Using only the job cluster metrics and historical context above, write the struc
                     logger.warning("rag_search_failed", error=str(e))
                     # Continue without RAG context
             
-            result = self.chain.run(
-                job_cluster_metrics=str(job_cluster_metrics),
-                historical_context=historical_context
-            )
+            result = self.chain.invoke({
+                "job_cluster_metrics": str(job_cluster_metrics),
+                "historical_context": historical_context
+            })
             logger.info("pattern_analysis_complete", used_rag=self.use_rag)
-            return result
+            return result if isinstance(result, str) else str(result)
         except Exception as e:
             logger.error("pattern_analysis_error", error=str(e))
             raise

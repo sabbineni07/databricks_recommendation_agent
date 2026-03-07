@@ -1,6 +1,6 @@
 """Explanation generation chain."""
 from langchain.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
 from AI.src.services.azure_openai_service import AzureOpenAIService
 from shared.utils.logging import get_logger
 
@@ -55,11 +55,7 @@ Use exactly these markdown headings. One short block per section.
 Using only the four inputs above, write the structured explanation with the six sections: Rationale, Evidence, Current vs recommended configuration, Expected impact, Risks and mitigations, Alternatives. Cite specific numbers from the inputs.""")
         ])
         
-        self.chain = LLMChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            verbose=True
-        )
+        self.chain = self.prompt | self.llm | StrOutputParser()
     
     def explain(
         self,
@@ -70,14 +66,14 @@ Using only the four inputs above, write the structured explanation with the six 
     ) -> str:
         """Generate detailed explanation."""
         try:
-            result = self.chain.run(
-                recommendation=str(recommendation),
-                job_cluster_metrics=str(job_cluster_metrics),
-                pattern_analysis=pattern_analysis,
-                risk_assessment=str(risk_assessment)
-            )
+            result = self.chain.invoke({
+                "recommendation": str(recommendation),
+                "job_cluster_metrics": str(job_cluster_metrics),
+                "pattern_analysis": pattern_analysis,
+                "risk_assessment": str(risk_assessment)
+            })
             logger.info("explanation_generated")
-            return result
+            return result if isinstance(result, str) else str(result)
         except Exception as e:
             logger.error("explanation_error", error=str(e))
             raise
